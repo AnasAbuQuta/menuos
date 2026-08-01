@@ -29,6 +29,12 @@ class CategoryService
 
     public function delete(Category $category): void
     {
+        abort_if(
+            $category->menuItems()->exists(),
+            409,
+            'Delete or move all menu items before deleting this category.',
+        );
+
         DB::transaction(function () use ($category): void {
             $restaurantId = $category->restaurant_id;
             $category->delete();

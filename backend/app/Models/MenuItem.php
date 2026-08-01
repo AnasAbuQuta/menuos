@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
-use Database\Factories\CategoryFactory;
+use Database\Factories\MenuItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'sort_order', 'is_active'])]
-class Category extends Model
+#[Fillable([
+    'category_id', 'name', 'description', 'price', 'image',
+    'is_available', 'is_featured', 'sort_order',
+])]
+class MenuItem extends Model
 {
-    /** @use HasFactory<CategoryFactory> */
+    /** @use HasFactory<MenuItemFactory> */
     use HasFactory;
 
     public function restaurant(): BelongsTo
@@ -21,9 +23,9 @@ class Category extends Model
         return $this->belongsTo(Restaurant::class);
     }
 
-    public function menuItems(): HasMany
+    public function category(): BelongsTo
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->belongsTo(Category::class);
     }
 
     public function scopeOrdered(Builder $query): Builder
@@ -33,6 +35,11 @@ class Category extends Model
 
     protected function casts(): array
     {
-        return ['sort_order' => 'integer', 'is_active' => 'boolean'];
+        return [
+            'price' => 'decimal:2',
+            'is_available' => 'boolean',
+            'is_featured' => 'boolean',
+            'sort_order' => 'integer',
+        ];
     }
 }

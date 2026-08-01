@@ -37,6 +37,7 @@ The Laravel project already includes a local `.env` file for development. Create
 cd backend
 php artisan key:generate
 php artisan migrate
+php artisan storage:link
 ```
 
 ## Run locally
@@ -80,4 +81,8 @@ npm run build
 
 ## Current scope
 
-Sprint 2 adds category creation, editing, activation, deletion, and ordering within the authenticated owner's restaurant. Categories are deleted automatically if their restaurant is deleted, preventing orphaned tenant data. Menu items, image uploads, public menus, QR codes, analytics, ordering, subscriptions, branches, POS, and final dashboard features are intentionally not implemented.
+Sprint 3 adds restaurant-scoped menu item CRUD, filtering, ordering, availability and featured flags, category assignment, and image upload. Menu item images are stored on Laravel's public disk under `menu-items/{restaurant_id}`; run `php artisan storage:link` once per deployment so URLs are publicly usable.
+
+Deleting a restaurant cascades to its menu items. Deleting a category that still contains menu items returns HTTP `409`; items must be moved or deleted explicitly first. Menu-item updates accept JSON `PUT`, while image replacements use multipart `POST` with `_method=PUT`. Collections are intentionally unpaginated during the MVP and are expected to remain small.
+
+Public menus, QR codes, cart, WhatsApp ordering, analytics, variants, modifiers, inventory, subscriptions, branches, POS, and final dashboard features are intentionally not implemented.
