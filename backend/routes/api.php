@@ -21,6 +21,10 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/', [RestaurantController::class, 'show']);
         Route::post('/', [RestaurantController::class, 'store']);
         Route::put('/', [RestaurantController::class, 'update']);
+        Route::post('logo', [RestaurantController::class, 'uploadLogo']);
+        Route::post('cover', [RestaurantController::class, 'uploadCover']);
+        Route::delete('logo', [RestaurantController::class, 'deleteLogo']);
+        Route::delete('cover', [RestaurantController::class, 'deleteCover']);
     });
 
     Route::middleware('auth:sanctum')->prefix('categories')->group(function (): void {

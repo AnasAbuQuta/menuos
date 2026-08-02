@@ -7,6 +7,7 @@ import RestaurantSetupPage from '../views/RestaurantSetupPage.vue'
 import DashboardPage from '../views/DashboardPage.vue'
 import CategoriesPage from '../views/CategoriesPage.vue'
 import MenuItemsPage from '../views/MenuItemsPage.vue'
+import RestaurantSettingsPage from '../views/RestaurantSettingsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -24,6 +25,10 @@ const router = createRouter({
     {
       path: '/categories', component: AppShell, meta: { requiresAuth: true },
       children: [{ path: '', name: 'categories', component: CategoriesPage }],
+    },
+    {
+      path: '/restaurant', component: AppShell, meta: { requiresAuth: true },
+      children: [{ path: '', name: 'restaurant-settings', component: RestaurantSettingsPage }],
     },
     {
       path: '/menu-items', component: AppShell, meta: { requiresAuth: true },

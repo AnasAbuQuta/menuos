@@ -16,8 +16,8 @@ class StoreRestaurantRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'logo' => ['nullable', 'string', 'max:2048'],
-            'cover_image' => ['nullable', 'string', 'max:2048'],
+            'logo' => ['prohibited'],
+            'cover_image' => ['prohibited'],
             'whatsapp' => ['nullable', 'string', 'max:30'],
             'phone' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:2000'],

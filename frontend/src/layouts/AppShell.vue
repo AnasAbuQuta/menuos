@@ -18,6 +18,7 @@ async function logout() {
         <RouterLink class="brand" to="/app/dashboard">MenuOS</RouterLink>
         <nav v-if="auth.hasRestaurant" aria-label="Main navigation">
           <RouterLink to="/app/dashboard">Dashboard</RouterLink>
+          <RouterLink to="/restaurant">Restaurant</RouterLink>
           <RouterLink to="/categories">Categories</RouterLink>
           <RouterLink to="/menu-items">Menu Items</RouterLink>
         </nav>

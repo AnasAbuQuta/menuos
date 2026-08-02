@@ -21,4 +21,9 @@ class RestaurantPolicy
     {
         return $restaurant->owner_id === $user->id;
     }
+
+    public function manageImages(User $user, Restaurant $restaurant): bool
+    {
+        return $restaurant->owner_id === $user->id;
+    }
 }

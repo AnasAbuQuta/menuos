@@ -86,3 +86,9 @@ Sprint 3 adds restaurant-scoped menu item CRUD, filtering, ordering, availabilit
 Deleting a restaurant cascades to its menu items. Deleting a category that still contains menu items returns HTTP `409`; items must be moved or deleted explicitly first. Menu-item updates accept JSON `PUT`, while image replacements use multipart `POST` with `_method=PUT`. Collections are intentionally unpaginated during the MVP and are expected to remain small.
 
 Public menus, QR codes, cart, WhatsApp ordering, analytics, variants, modifiers, inventory, subscriptions, branches, POS, and final dashboard features are intentionally not implemented.
+
+Sprint 4 adds authenticated restaurant profile and brand settings. Restaurant slugs remain stable when names change. Logo and cover files use the public disk under `restaurants/{restaurant_id}/logo` and `restaurants/{restaurant_id}/cover`, with old files removed only after successful replacement.
+
+Opening hours require all seven English day keys whenever the field is updated, with one opening and closing time for each open day. Overnight hours and multiple shifts are not supported yet. Supported MVP currencies are `ILS`, `USD`, and `JOD`.
+
+Phone and WhatsApp normalization removes spaces, hyphens, and parentheses while preserving an optional leading `+`. MenuOS does not infer country codes or provide comprehensive international phone validation in this release.
