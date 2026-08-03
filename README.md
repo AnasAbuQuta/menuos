@@ -126,3 +126,9 @@ The Vue interface uses Vue I18n, persists the selected interface language in `lo
 Category management includes client-side Arabic/English search, handle-based mouse and touch ordering through SortableJS, and keyboard move controls. Category activity plus menu-item featured and availability states update optimistically through the existing tenant-scoped partial update behavior and roll back when requests fail. No additional toggle endpoints were necessary.
 
 Management actions use a small local SVG icon component, localized native tooltips, accessible toggle semantics, and the existing live-region toast system. Public-menu preview actions derive URLs from the active frontend origin and restaurant slug rather than hardcoding a development host.
+
+## Setup completion and themes (Sprint 8C)
+
+Restaurants choose one of six allow-listed theme presets (`modern`, `minimal`, `warm`, `dark`, `cafe`, or `fast_food`). The `theme_key` database column defaults to `modern`; `primary_color` remains an optional validated override. Public pages translate the selected preset into predefined CSS custom properties, so restaurant input can never inject arbitrary CSS. Supported currencies are restricted to ILS, USD, and JOD.
+
+Setup completion is calculated client-side from 11 equally weighted requirements: restaurant name, description, logo, cover, phone or WhatsApp, address, at least one configured open day, supported currency, selected theme, at least one active category, and at least one available menu item. The percentage is the number of completed requirements divided by 11, rounded to the nearest whole number. Each incomplete requirement links directly to Restaurant Settings, Categories, or Menu Items as appropriate.

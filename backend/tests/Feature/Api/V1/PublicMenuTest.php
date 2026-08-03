@@ -23,7 +23,7 @@ class PublicMenuTest extends TestCase
     {
         $restaurant = Restaurant::factory()->create([
             'slug' => 'green-table', 'logo' => 'restaurants/1/logo/logo.jpg',
-            'cover_image' => 'restaurants/1/cover/cover.jpg', 'primary_color' => '#176B52',
+            'cover_image' => 'restaurants/1/cover/cover.jpg', 'primary_color' => '#176B52', 'theme_key' => 'cafe',
         ]);
         $category = Category::factory()->create(['restaurant_id' => $restaurant->id]);
         MenuItem::factory()->create([
@@ -34,6 +34,7 @@ class PublicMenuTest extends TestCase
         $this->getJson('/api/v1/public/menu/green-table')
             ->assertOk()
             ->assertJsonPath('data.menu.slug', 'green-table')
+            ->assertJsonPath('data.menu.theme_key', 'cafe')
             ->assertJsonPath('data.menu.categories.0.menu_items.0.is_featured', true)
             ->assertJsonStructure(['data' => ['menu' => ['logo_url', 'cover_image_url', 'categories']]])
             ->assertJsonMissingPath('data.menu.owner_id')

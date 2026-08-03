@@ -9,6 +9,8 @@ import BaseButton from '../components/ui/BaseButton.vue'
 import { useToastStore } from '../stores/toast'
 import { useI18n } from 'vue-i18n'
 import PublicMenuPreview from '../components/PublicMenuPreview.vue'
+import CurrencySelect from '../components/CurrencySelect.vue'
+import ThemeSelector from '../components/ThemeSelector.vue'
 
 const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const auth = useAuthStore()
@@ -22,8 +24,8 @@ const errors = ref({})
 const toast = useToastStore()
 const logoField = ref(null)
 const coverField = ref(null)
-const form = reactive({ name_ar: '', name_en: '', description_ar: '', description_en: '', default_language: 'ar', is_active: true, whatsapp: '', phone: '', address: '', currency: 'ILS', primary_color: '#176B52', opening_hours: {} })
-const colorValid = computed(() => /^#[0-9A-Fa-f]{6}$/.test(form.primary_color))
+const form = reactive({ name_ar: '', name_en: '', description_ar: '', description_en: '', default_language: 'ar', is_active: true, whatsapp: '', phone: '', address: '', currency: 'ILS', theme_key: 'modern', primary_color: '', opening_hours: {} })
+const colorValid = computed(() => !form.primary_color || /^#[0-9A-Fa-f]{6}$/.test(form.primary_color))
 const { t } = useI18n()
 
 function defaultHours() {
@@ -35,7 +37,7 @@ function populate(data) {
   Object.assign(form, {
     name_ar: data.name_ar ?? data.name ?? '', name_en: data.name_en ?? '', description_ar: data.description_ar ?? data.description ?? '', description_en: data.description_en ?? '', default_language: data.default_language ?? 'ar', is_active: data.is_active,
     whatsapp: data.whatsapp ?? '', phone: data.phone ?? '', address: data.address ?? '',
-    currency: data.currency ?? 'ILS', primary_color: data.primary_color ?? '#176B52',
+    currency: data.currency ?? 'ILS', theme_key: data.theme_key ?? 'modern', primary_color: data.primary_color ?? '',
     opening_hours: data.opening_hours ?? defaultHours(),
   })
   auth.user.restaurant = data
@@ -109,7 +111,7 @@ onMounted(load)
       <form class="settings-form" @submit.prevent="save">
         <section class="card settings-section"><div><h2>{{ $t('restaurant.basic') }}</h2><p>{{ $t('restaurant.settingsIntro') }}</p></div><div class="settings-grid"><label>{{ $t('restaurant.nameAr') }}<input v-model="form.name_ar" maxlength="255" :disabled="saving"><span v-if="errorFor('name_ar')" class="field-error">{{ errorFor('name_ar') }}</span></label><label>{{ $t('restaurant.nameEn') }}<input v-model="form.name_en" maxlength="255" :disabled="saving"><span v-if="errorFor('name_en')" class="field-error">{{ errorFor('name_en') }}</span></label><label class="full">{{ $t('restaurant.descriptionAr') }}<textarea v-model="form.description_ar" rows="4" maxlength="5000" :disabled="saving" /></label><label class="full">{{ $t('restaurant.descriptionEn') }}<textarea v-model="form.description_en" rows="4" maxlength="5000" :disabled="saving" /></label><label>{{ $t('restaurant.defaultLanguage') }}<select v-model="form.default_language" :disabled="saving"><option value="ar">{{ $t('language.ar') }}</option><option value="en">{{ $t('language.en') }}</option></select></label><label class="checkbox-label setting-toggle"><input v-model="form.is_active" type="checkbox" :disabled="saving">{{ $t('common.active') }}</label></div></section>
         <section class="card settings-section"><div><h2>Contact Information</h2><p>Country codes are preserved but never guessed automatically.</p></div><div class="settings-grid"><label>WhatsApp<input v-model="form.whatsapp" type="tel" maxlength="30" placeholder="+970591234567" :disabled="saving"><span v-if="errorFor('whatsapp')" class="field-error">{{ errorFor('whatsapp') }}</span></label><label>Phone<input v-model="form.phone" type="tel" maxlength="30" placeholder="0591234567" :disabled="saving"><span v-if="errorFor('phone')" class="field-error">{{ errorFor('phone') }}</span></label><label class="full">Address<textarea v-model="form.address" rows="3" maxlength="2000" :disabled="saving" /><span v-if="errorFor('address')" class="field-error">{{ errorFor('address') }}</span></label></div></section>
-        <section class="card settings-section"><div><h2>Brand Settings</h2><p>These values will be used by the future public menu.</p></div><div class="settings-grid"><label>Currency<select v-model="form.currency" :disabled="saving"><option value="ILS">ILS</option><option value="USD">USD</option><option value="JOD">JOD</option></select><span v-if="errorFor('currency')" class="field-error">{{ errorFor('currency') }}</span></label><label>Primary color<div class="color-control"><input v-model="form.primary_color" type="color" :disabled="saving"><input v-model.trim="form.primary_color" maxlength="7" placeholder="#E63946" :disabled="saving"></div><span v-if="errorFor('primary_color')" class="field-error">{{ errorFor('primary_color') }}</span></label></div><div class="brand-images"><RestaurantImageField ref="logoField" label="Logo" guidance="A square image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.logo_url" :busy="imageBusy.logo" @upload="handleImage('logo', $event)" @remove="removeImage('logo')" /><RestaurantImageField ref="coverField" label="Cover" guidance="A wide landscape image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.cover_image_url" :busy="imageBusy.cover" @upload="handleImage('cover', $event)" @remove="removeImage('cover')" /></div></section>
+        <section class="card settings-section"><div><h2>Brand Settings</h2><p>These values will be used by the future public menu.</p></div><div class="settings-grid"><CurrencySelect v-model="form.currency" :disabled="saving" /><ThemeSelector v-model="form.theme_key" v-model:primary-color="form.primary_color" :disabled="saving" /></div><div class="brand-images"><RestaurantImageField ref="logoField" label="Logo" guidance="A square image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.logo_url" :busy="imageBusy.logo" @upload="handleImage('logo', $event)" @remove="removeImage('logo')" /><RestaurantImageField ref="coverField" label="Cover" guidance="A wide landscape image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.cover_image_url" :busy="imageBusy.cover" @upload="handleImage('cover', $event)" @remove="removeImage('cover')" /></div></section>
         <section class="card settings-section"><div><h2>Opening Hours</h2><p>Configure one daily shift. Overnight hours are not supported yet.</p></div><div class="hours-list"><div v-for="day in days" :key="day" class="hours-row"><strong>{{ day.charAt(0).toUpperCase() + day.slice(1) }}</strong><label class="checkbox-label"><input v-model="form.opening_hours[day].is_open" type="checkbox" :disabled="saving" @change="toggleDay(day)">Open</label><label>Opens<input v-model="form.opening_hours[day].open" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.open`)" class="field-error">{{ errorFor(`opening_hours.${day}.open`) }}</span></label><label>Closes<input v-model="form.opening_hours[day].close" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.close`)" class="field-error">{{ errorFor(`opening_hours.${day}.close`) }}</span></label></div></div></section>
         <BaseButton class="settings-save" type="submit" :loading="saving">Save settings</BaseButton>
       </form>

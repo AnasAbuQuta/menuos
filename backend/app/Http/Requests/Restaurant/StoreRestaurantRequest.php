@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Restaurant;
 
 use App\Http\Requests\Concerns\NormalizesBilingualInput;
+use App\Support\RestaurantTheme;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRestaurantRequest extends FormRequest
 {
@@ -30,8 +32,9 @@ class StoreRestaurantRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:30'],
             'address' => ['nullable', 'string', 'max:2000'],
             'opening_hours' => ['nullable', 'array'],
-            'currency' => ['sometimes', 'string', 'size:3', 'uppercase'],
+            'currency' => ['sometimes', 'string', Rule::in(['ILS', 'USD', 'JOD'])],
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'theme_key' => ['sometimes', 'string', Rule::in(RestaurantTheme::KEYS)],
             'is_active' => ['sometimes', 'boolean'],
             'owner_id' => ['prohibited'],
             'slug' => ['prohibited'],

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'owner_id', 'name', 'name_ar', 'name_en', 'slug', 'description', 'description_ar', 'description_en', 'default_language', 'logo', 'cover_image',
     'whatsapp', 'phone', 'address', 'opening_hours', 'currency',
-    'primary_color', 'is_active',
+    'primary_color', 'theme_key', 'is_active',
 ])]
 class Restaurant extends Model
 {
