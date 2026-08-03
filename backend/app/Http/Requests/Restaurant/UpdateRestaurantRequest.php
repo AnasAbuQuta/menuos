@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Restaurant;
 
+use App\Http\Requests\Concerns\NormalizesBilingualInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateRestaurantRequest extends FormRequest
 {
+    use NormalizesBilingualInput;
+
     private const DAYS = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
     public function authorize(): bool
@@ -16,6 +19,7 @@ class UpdateRestaurantRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeBilingualFields();
         $normalized = [];
         if ($this->has('name')) {
             $normalized['name'] = trim((string) $this->input('name'));
@@ -37,8 +41,13 @@ class UpdateRestaurantRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'name' => ['sometimes', 'nullable', 'required_without_all:name_ar,name_en', 'string', 'max:255'],
+            'name_ar' => ['sometimes', 'nullable', 'required_without_all:name,name_en', 'string', 'max:255'],
+            'name_en' => ['sometimes', 'nullable', 'required_without_all:name,name_ar', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'description_ar' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'description_en' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'default_language' => ['sometimes', 'string', Rule::in(['ar', 'en'])],
             'whatsapp' => ['sometimes', 'nullable', 'string', 'max:21', 'regex:/^\+?[0-9]{6,20}$/'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:21', 'regex:/^\+?[0-9]{6,20}$/'],
             'address' => ['sometimes', 'nullable', 'string', 'max:2000'],

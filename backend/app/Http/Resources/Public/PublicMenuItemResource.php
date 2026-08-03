@@ -12,8 +12,8 @@ class PublicMenuItemResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'description' => $this->description,
+            'name' => $this->getLocalizedName($this->active_language),
+            'description' => $this->getLocalizedDescription($this->active_language),
             'price' => $this->price,
             'image_url' => $this->image ? Storage::disk('public')->url($this->image) : null,
             'is_featured' => $this->is_featured,

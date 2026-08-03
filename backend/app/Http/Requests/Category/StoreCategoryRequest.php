@@ -2,10 +2,13 @@
 
 namespace App\Http\Requests\Category;
 
+use App\Http\Requests\Concerns\NormalizesBilingualInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCategoryRequest extends FormRequest
 {
+    use NormalizesBilingualInput;
+
     public function authorize(): bool
     {
         return true;
@@ -13,6 +16,7 @@ class StoreCategoryRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeBilingualFields();
         if ($this->has('name')) {
             $this->merge(['name' => trim((string) $this->input('name'))]);
         }
@@ -21,7 +25,9 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:120'],
+            'name' => ['nullable', 'required_without_all:name_ar,name_en', 'string', 'max:120'],
+            'name_ar' => ['nullable', 'required_without_all:name,name_en', 'string', 'max:120'],
+            'name_en' => ['nullable', 'required_without_all:name,name_ar', 'string', 'max:120'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'restaurant_id' => ['prohibited'],
