@@ -25,6 +25,7 @@ class PublicRestaurantMenuResource extends JsonResource
             'opening_hours' => $this->opening_hours,
             'currency' => $this->currency,
             'primary_color' => $this->primary_color,
+            'theme_key' => $this->theme_key,
             'is_active' => $this->is_active,
             'is_open_now' => $this->is_open_now,
             'categories' => PublicCategoryResource::collection($this->whenLoaded('categories')),

@@ -141,15 +141,17 @@ onBeforeUnmount(() => sortable?.destroy())
       <li v-for="item in items" :key="item.id" :data-id="item.id" class="card menu-item-card">
         <BaseIconButton class="drag-handle" :label="$t('management.items.drag', { name: name(item) })" :disabled="!reorderEnabled"><AppIcon name="grip" :size="21" /></BaseIconButton>
         <div class="menu-item-image"><img v-if="item.image_url" :src="item.image_url" :alt="name(item)"><span v-else aria-hidden="true">{{ $t('common.noImage') }}</span></div>
-        <div class="menu-item-body"><div class="menu-item-title"><div><small>{{ name(item.category) }}</small><h2>{{ name(item) }}</h2><small v-if="secondaryName(item)">{{ secondaryName(item) }}</small></div><strong>{{ item.price }}</strong></div><p v-if="localizedValue(item, 'description', locale)">{{ localizedValue(item, 'description', locale) }}</p></div>
-        <div class="management-actions">
-          <BaseIconButton :active="item.is_featured" :label="$t(item.is_featured ? 'management.items.removeFeatured' : 'management.items.markFeatured')" :disabled="toggling.has(`${item.id}:is_featured`)" @click="toggle(item, 'is_featured', !item.is_featured)"><AppIcon name="star" :size="21" :filled="item.is_featured" /></BaseIconButton>
-          <BaseToggle :model-value="item.is_available" :label="$t(item.is_available ? 'management.items.markUnavailable' : 'management.items.markAvailable', { name: name(item) })" :disabled="toggling.has(`${item.id}:is_available`)" @update:model-value="toggle(item, 'is_available', $event)" />
-          <span class="status-label">{{ $t(item.is_available ? 'common.available' : 'common.unavailable') }}</span>
-          <BaseIconButton :label="$t('categories.moveUp', { name: name(item) })" :disabled="!reorderEnabled" @click="keyboardMove(item, -1)"><AppIcon name="up" :size="18" /></BaseIconButton>
-          <BaseIconButton :label="$t('categories.moveDown', { name: name(item) })" :disabled="!reorderEnabled" @click="keyboardMove(item, 1)"><AppIcon name="down" :size="18" /></BaseIconButton>
-          <BaseIconButton :label="$t('common.edit')" @click="openEdit(item)"><AppIcon name="edit" :size="18" /></BaseIconButton>
-          <BaseIconButton danger :label="$t('common.delete')" @click="pendingDelete = item"><AppIcon name="trash" :size="18" /></BaseIconButton>
+        <div class="menu-item-body"><div class="menu-item-title"><div><small>{{ name(item.category) }}</small><h2>{{ name(item) }}</h2><small v-if="secondaryName(item)">{{ secondaryName(item) }}</small></div></div><p v-if="localizedValue(item, 'description', locale)">{{ localizedValue(item, 'description', locale) }}</p></div>
+        <div class="menu-item-side">
+          <strong class="menu-item-price">{{ item.price }}</strong><div class="management-actions">
+            <BaseIconButton :active="item.is_featured" :label="$t(item.is_featured ? 'management.items.removeFeatured' : 'management.items.markFeatured')" :disabled="toggling.has(`${item.id}:is_featured`)" @click="toggle(item, 'is_featured', !item.is_featured)"><AppIcon name="star" :size="21" :filled="item.is_featured" /></BaseIconButton>
+            <BaseToggle :model-value="item.is_available" :label="$t(item.is_available ? 'management.items.markUnavailable' : 'management.items.markAvailable', { name: name(item) })" :disabled="toggling.has(`${item.id}:is_available`)" @update:model-value="toggle(item, 'is_available', $event)" />
+            <span class="status-label">{{ $t(item.is_available ? 'common.available' : 'common.unavailable') }}</span>
+            <BaseIconButton :label="$t('categories.moveUp', { name: name(item) })" :disabled="!reorderEnabled" @click="keyboardMove(item, -1)"><AppIcon name="up" :size="18" /></BaseIconButton>
+            <BaseIconButton :label="$t('categories.moveDown', { name: name(item) })" :disabled="!reorderEnabled" @click="keyboardMove(item, 1)"><AppIcon name="down" :size="18" /></BaseIconButton>
+            <BaseIconButton :label="$t('common.edit')" @click="openEdit(item)"><AppIcon name="edit" :size="18" /></BaseIconButton>
+            <BaseIconButton danger :label="$t('common.delete')" @click="pendingDelete = item"><AppIcon name="trash" :size="18" /></BaseIconButton>
+          </div>
         </div>
       </li>
     </ul>

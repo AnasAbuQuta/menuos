@@ -28,6 +28,7 @@ class RestaurantResource extends JsonResource
             'opening_hours' => $this->opening_hours,
             'currency' => $this->currency,
             'primary_color' => $this->primary_color,
+            'theme_key' => $this->theme_key,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

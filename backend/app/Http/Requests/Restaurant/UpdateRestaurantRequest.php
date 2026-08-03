@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Restaurant;
 
 use App\Http\Requests\Concerns\NormalizesBilingualInput;
+use App\Support\RestaurantTheme;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -54,6 +55,7 @@ class UpdateRestaurantRequest extends FormRequest
             'opening_hours' => ['sometimes', 'required', 'array:'.implode(',', self::DAYS)],
             'currency' => ['sometimes', 'string', Rule::in(['ILS', 'USD', 'JOD'])],
             'primary_color' => ['sometimes', 'nullable', 'regex:/^#[0-9A-F]{6}$/'],
+            'theme_key' => ['sometimes', 'string', Rule::in(RestaurantTheme::KEYS)],
             'is_active' => ['sometimes', 'boolean'],
             'owner_id' => ['prohibited'],
             'slug' => ['prohibited'],

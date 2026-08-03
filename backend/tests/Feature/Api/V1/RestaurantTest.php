@@ -228,6 +228,38 @@ class RestaurantTest extends TestCase
         $this->assertCount(1, Storage::disk('public')->allFiles());
     }
 
+    public function test_supported_currency_and_theme_are_accepted(): void
+    {
+        $restaurant = $this->actingOwner();
+
+        $this->putJson('/api/v1/restaurant', ['currency' => 'USD', 'theme_key' => 'warm'])
+            ->assertOk()->assertJsonPath('data.restaurant.currency', 'USD')
+            ->assertJsonPath('data.restaurant.theme_key', 'warm');
+
+        $this->assertDatabaseHas('restaurants', ['id' => $restaurant->id, 'currency' => 'USD', 'theme_key' => 'warm']);
+    }
+
+    public function test_unsupported_currency_and_theme_are_rejected(): void
+    {
+        $restaurant = $this->actingOwner(['currency' => 'ILS', 'theme_key' => 'modern']);
+
+        $this->putJson('/api/v1/restaurant', ['currency' => 'EUR', 'theme_key' => 'custom<script>'])
+            ->assertUnprocessable()->assertJsonValidationErrors(['currency', 'theme_key']);
+
+        $this->assertSame('ILS', $restaurant->fresh()->currency);
+        $this->assertSame('modern', $restaurant->fresh()->theme_key);
+    }
+
+    public function test_new_restaurants_receive_the_default_theme(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/v1/restaurant', ['name' => 'Default Theme Restaurant', 'currency' => 'JOD'])
+            ->assertCreated()->assertJsonPath('data.restaurant.theme_key', 'modern')
+            ->assertJsonPath('data.restaurant.currency', 'JOD');
+    }
+
     private function actingOwner(array $attributes = []): Restaurant
     {
         $user = User::factory()->create();

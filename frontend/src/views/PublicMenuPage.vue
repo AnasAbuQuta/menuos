@@ -10,6 +10,7 @@ import BaseEmptyState from '../components/ui/BaseEmptyState.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import { setLocale } from '../i18n'
 import { useI18n } from 'vue-i18n'
+import { themeVariables } from '../theme/restaurantThemes'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,7 +27,7 @@ const originalDescription = descriptionMeta?.content || ''
 const { t, locale } = useI18n()
 const requestedLanguage = computed(() => ['ar', 'en'].includes(route.query.lang) ? route.query.lang : locale.value)
 
-const brandColor = computed(() => /^#[0-9a-f]{6}$/i.test(menu.value?.primary_color || '') ? menu.value.primary_color : '#176B52')
+const menuTheme = computed(() => themeVariables(menu.value?.theme_key, /^#[0-9a-f]{6}$/i.test(menu.value?.primary_color || '') ? menu.value.primary_color : null))
 const categories = computed(() => {
   const term = search.value.trim().toLocaleLowerCase()
   if (!term) return menu.value?.categories || []
@@ -82,7 +83,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main class="public-menu-page" :style="{ '--menu-brand': brandColor }">
+  <main class="public-menu-page" :style="menuTheme">
     <LanguageSwitcher @change="changeLanguage" />
     <section v-if="loading" class="public-menu-loading"><BaseLoading :rows="6" :label="$t('public.loading')" /></section>
     <section v-else-if="notFound" class="public-menu-state">
@@ -126,7 +127,7 @@ onBeforeUnmount(() => {
         </section>
       </div>
       <footer class="public-menu-footer">{{ $t('public.powered') }}</footer>
-      <button class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
+      <button v-if="!cartOpen" class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
       <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" />
     </template>
   </main>
