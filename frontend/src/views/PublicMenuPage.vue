@@ -11,6 +11,8 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import { setLocale } from '../i18n'
 import { useI18n } from 'vue-i18n'
 import { themeVariables } from '../theme/restaurantThemes'
+import { flushPublicEvents, trackPublicEvent, trafficSource } from '../services/analytics'
+import { applyRestaurantSeo, clearRestaurantSeo } from '../utils/seo'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,6 +26,7 @@ const cart = useCartStore()
 const originalTitle = document.title
 const descriptionMeta = document.querySelector('meta[name="description"]')
 const originalDescription = descriptionMeta?.content || ''
+let searchTimer
 const { t, locale } = useI18n()
 const requestedLanguage = computed(() => ['ar', 'en'].includes(route.query.lang) ? route.query.lang : locale.value)
 
@@ -44,16 +47,15 @@ function money(value) {
 }
 
 function scrollToCategory(id) {
+  trackPublicEvent(menu.value?.slug, 'category_click', { subject_id: id })
   document.getElementById(`category-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+function trackItem(item) { trackPublicEvent(menu.value?.slug, 'item_click', { subject_id: item.id }) }
+function trackContact(type) { trackPublicEvent(menu.value?.slug, type) }
+
 async function changeLanguage(language) {
   await router.replace({ query: { ...route.query, lang: language } })
-}
-
-function setMetadata() {
-  document.title = `${menu.value.name} | MenuOS`
-  if (descriptionMeta) descriptionMeta.content = menu.value.description || t('forms.publicMeta', { name: menu.value.name })
 }
 
 async function loadMenu() {
@@ -65,7 +67,12 @@ async function loadMenu() {
     setLocale(menu.value.language)
     cart.initialize(menu.value.slug, menu.value.categories.flatMap((category) => category.menu_items))
     await nextTick()
-    setMetadata()
+    const canonical = `${window.location.origin}/menu/${encodeURIComponent(menu.value.slug)}`
+    clearRestaurantSeo(originalTitle)
+    applyRestaurantSeo(menu.value, canonical)
+    const source = trafficSource(String(route.query.source || ''))
+    trackPublicEvent(menu.value.slug, 'menu_view', { source })
+    if (source === 'qr') trackPublicEvent(menu.value.slug, 'qr_visit', { source: 'qr' })
   } catch (requestError) {
     if (requestError.response?.status === 404) notFound.value = true
     else error.value = t('public.loadErrorHelp')
@@ -76,8 +83,11 @@ async function loadMenu() {
 
 onMounted(loadMenu)
 watch(() => route.query.lang, loadMenu)
+watch(search, (value) => { clearTimeout(searchTimer); if (value.trim()) searchTimer = setTimeout(() => trackPublicEvent(menu.value?.slug, 'search'), 600) })
 onBeforeUnmount(() => {
-  document.title = originalTitle
+  clearTimeout(searchTimer)
+  void flushPublicEvents(menu.value?.slug)
+  clearRestaurantSeo(originalTitle)
   if (descriptionMeta) descriptionMeta.content = originalDescription
 })
 </script>
@@ -105,8 +115,8 @@ onBeforeUnmount(() => {
 
       <section class="public-menu-contact" aria-label="Restaurant details">
         <span v-if="menu.address">{{ menu.address }}</span>
-        <a v-if="menu.phone" :href="`tel:${menu.phone}`">{{ $t('public.call', { phone: menu.phone }) }}</a>
-        <a v-if="whatsappUrl" :href="whatsappUrl" target="_blank" rel="noopener noreferrer">{{ $t('public.whatsapp') }}</a>
+        <a v-if="menu.phone" :href="`tel:${menu.phone}`" @click="trackContact('phone_click')">{{ $t('public.call', { phone: menu.phone }) }}</a>
+        <a v-if="whatsappUrl" :href="whatsappUrl" target="_blank" rel="noopener noreferrer" @click="trackContact('whatsapp_click')">{{ $t('public.whatsapp') }}</a>
       </section>
 
       <div class="public-menu-container">
@@ -117,18 +127,18 @@ onBeforeUnmount(() => {
         </nav>
 
         <section v-if="featuredItems.length && !search" class="public-menu-section">
-          <h2>{{ $t('public.featured') }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
+          <h2>{{ $t('public.featured') }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" @add="cart.add" @view="trackItem" /></div>
         </section>
 
         <BaseEmptyState v-if="!menu.categories.length" :title="$t('public.coming')" :message="$t('public.comingHelp')" />
         <BaseEmptyState v-else-if="!categories.length" :title="$t('public.noMatches')" :message="$t('public.noMatchesHelp')" />
         <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="public-menu-section public-menu-category">
-          <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
+          <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" @add="cart.add" @view="trackItem" /></div>
         </section>
       </div>
       <footer class="public-menu-footer">{{ $t('public.powered') }}</footer>
       <button v-if="!cartOpen" class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
-      <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" />
+      <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" @whatsapp="trackContact('whatsapp_click')" />
     </template>
   </main>
 </template>

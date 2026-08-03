@@ -33,6 +33,7 @@ class PublicMenuTest extends TestCase
 
         $this->getJson('/api/v1/public/menu/green-table')
             ->assertOk()
+            ->assertHeader('Cache-Control', 'max-age=60, public, stale-while-revalidate=300')
             ->assertJsonPath('data.menu.slug', 'green-table')
             ->assertJsonPath('data.menu.theme_key', 'cafe')
             ->assertJsonPath('data.menu.categories.0.menu_items.0.is_featured', true)
