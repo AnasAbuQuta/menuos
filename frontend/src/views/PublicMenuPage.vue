@@ -1,0 +1,121 @@
+<script setup>
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { getPublicMenu } from '../services/publicMenu'
+
+const route = useRoute()
+const menu = ref(null)
+const loading = ref(true)
+const notFound = ref(false)
+const error = ref('')
+const search = ref('')
+const originalTitle = document.title
+const descriptionMeta = document.querySelector('meta[name="description"]')
+const originalDescription = descriptionMeta?.content || ''
+
+const brandColor = computed(() => /^#[0-9a-f]{6}$/i.test(menu.value?.primary_color || '') ? menu.value.primary_color : '#176B52')
+const categories = computed(() => {
+  const term = search.value.trim().toLocaleLowerCase()
+  if (!term) return menu.value?.categories || []
+  return (menu.value?.categories || []).map((category) => ({
+    ...category,
+    menu_items: category.menu_items.filter((item) => `${item.name} ${item.description || ''}`.toLocaleLowerCase().includes(term)),
+  })).filter((category) => category.menu_items.length)
+})
+const featuredItems = computed(() => (menu.value?.categories || []).flatMap((category) => category.menu_items).filter((item) => item.is_featured))
+const whatsappUrl = computed(() => menu.value?.whatsapp ? `https://wa.me/${menu.value.whatsapp.replace(/\D/g, '')}` : null)
+
+function money(value) {
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: menu.value?.currency || 'ILS' }).format(Number(value))
+}
+
+function scrollToCategory(id) {
+  document.getElementById(`category-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function setMetadata() {
+  document.title = `${menu.value.name} | MenuOS`
+  if (descriptionMeta) descriptionMeta.content = menu.value.description || `View the menu for ${menu.value.name}.`
+}
+
+async function loadMenu() {
+  loading.value = true
+  notFound.value = false
+  error.value = ''
+  try {
+    menu.value = await getPublicMenu(route.params.slug)
+    await nextTick()
+    setMetadata()
+  } catch (requestError) {
+    if (requestError.response?.status === 404) notFound.value = true
+    else error.value = 'The menu could not be loaded. Please check your connection and try again.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadMenu)
+onBeforeUnmount(() => {
+  document.title = originalTitle
+  if (descriptionMeta) descriptionMeta.content = originalDescription
+})
+</script>
+
+<template>
+  <main class="public-menu-page" :style="{ '--menu-brand': brandColor }">
+    <section v-if="loading" class="public-menu-state" aria-live="polite">
+      <div class="public-menu-spinner" aria-hidden="true"></div><p>Loading menu…</p>
+    </section>
+    <section v-else-if="notFound" class="public-menu-state">
+      <span class="public-menu-code">404</span><h1>Menu not found</h1><p>This restaurant menu is unavailable.</p>
+    </section>
+    <section v-else-if="error" class="public-menu-state" role="alert">
+      <h1>Unable to load menu</h1><p>{{ error }}</p><button class="public-menu-button" @click="loadMenu">Try again</button>
+    </section>
+
+    <template v-else-if="menu">
+      <header class="public-menu-hero" :class="{ 'has-cover': menu.cover_image_url }" :style="menu.cover_image_url ? { backgroundImage: `linear-gradient(180deg, rgb(10 24 19 / 35%), rgb(10 24 19 / 82%)), url(${menu.cover_image_url})` } : {}">
+        <div class="public-menu-hero-content">
+          <img v-if="menu.logo_url" class="public-menu-logo" :src="menu.logo_url" :alt="`${menu.name} logo`" width="104" height="104">
+          <span v-else class="public-menu-logo-placeholder" aria-hidden="true">{{ menu.name.charAt(0) }}</span>
+          <div><p class="public-menu-eyebrow">Restaurant menu</p><h1>{{ menu.name }}</h1><p v-if="menu.description" class="public-menu-description">{{ menu.description }}</p></div>
+          <span v-if="menu.is_open_now !== null" class="public-menu-status" :class="{ closed: !menu.is_open_now }">{{ menu.is_open_now ? 'Open now' : 'Closed now' }}</span>
+        </div>
+      </header>
+
+      <section class="public-menu-contact" aria-label="Restaurant details">
+        <span v-if="menu.address">{{ menu.address }}</span>
+        <a v-if="menu.phone" :href="`tel:${menu.phone}`">Call {{ menu.phone }}</a>
+        <a v-if="whatsappUrl" :href="whatsappUrl" target="_blank" rel="noopener noreferrer">Contact on WhatsApp</a>
+      </section>
+
+      <div class="public-menu-container">
+        <label class="public-menu-search"><span class="sr-only">Search menu</span><input v-model="search" type="search" placeholder="Search dishes…"></label>
+
+        <nav v-if="menu.categories.length" class="public-menu-nav" aria-label="Menu categories">
+          <button v-for="category in menu.categories" :key="category.id" @click="scrollToCategory(category.id)">{{ category.name }}</button>
+        </nav>
+
+        <section v-if="featuredItems.length && !search" class="public-menu-section">
+          <h2>Featured</h2><div class="public-menu-grid"><article v-for="item in featuredItems" :key="`featured-${item.id}`" class="public-menu-card"><MenuItemContent :item="item" :money="money" /></article></div>
+        </section>
+
+        <div v-if="!menu.categories.length" class="public-menu-empty"><h2>Menu coming soon</h2><p>This restaurant has not published any available items yet.</p></div>
+        <div v-else-if="!categories.length" class="public-menu-empty"><h2>No matches</h2><p>Try a different dish name or description.</p></div>
+        <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="public-menu-section public-menu-category">
+          <h2>{{ category.name }}</h2><div class="public-menu-grid"><article v-for="item in category.menu_items" :key="item.id" class="public-menu-card"><MenuItemContent :item="item" :money="money" /></article></div>
+        </section>
+      </div>
+      <footer class="public-menu-footer">Powered by MenuOS</footer>
+    </template>
+  </main>
+</template>
+
+<script>
+const MenuItemContent = {
+  props: { item: { type: Object, required: true }, money: { type: Function, required: true } },
+  template: `<div class="public-menu-image"><img v-if="item.image_url" :src="item.image_url" :alt="item.name" loading="lazy" width="640" height="400"><span v-else aria-hidden="true">No image</span></div><div class="public-menu-card-body"><div class="public-menu-card-title"><h3>{{ item.name }}</h3><strong>{{ money(item.price) }}</strong></div><p v-if="item.description">{{ item.description }}</p><span v-if="item.is_featured" class="public-menu-featured">Featured</span></div>`,
+}
+
+export default { components: { MenuItemContent } }
+</script>

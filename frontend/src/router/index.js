@@ -8,10 +8,12 @@ import DashboardPage from '../views/DashboardPage.vue'
 import CategoriesPage from '../views/CategoriesPage.vue'
 import MenuItemsPage from '../views/MenuItemsPage.vue'
 import RestaurantSettingsPage from '../views/RestaurantSettingsPage.vue'
+import PublicMenuPage from '../views/PublicMenuPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: '/menu/:slug', name: 'public-menu', component: PublicMenuPage },
     { path: '/', redirect: '/dashboard' },
     { path: '/login', name: 'login', component: LoginPage, meta: { guest: true } },
     { path: '/register', name: 'register', component: RegisterPage, meta: { guest: true } },

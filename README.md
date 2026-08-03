@@ -1,6 +1,6 @@
 # MenuOS
 
-MenuOS is a commercial SaaS product for menu management. The current implementation includes token authentication, one restaurant per owner, and restaurant-scoped category management.
+MenuOS is a commercial SaaS product for restaurant menu management. It includes owner authentication, restaurant-scoped management, branding, and a read-only public menu.
 
 ## Project structure
 
@@ -85,10 +85,18 @@ Sprint 3 adds restaurant-scoped menu item CRUD, filtering, ordering, availabilit
 
 Deleting a restaurant cascades to its menu items. Deleting a category that still contains menu items returns HTTP `409`; items must be moved or deleted explicitly first. Menu-item updates accept JSON `PUT`, while image replacements use multipart `POST` with `_method=PUT`. Collections are intentionally unpaginated during the MVP and are expected to remain small.
 
-Public menus, QR codes, cart, WhatsApp ordering, analytics, variants, modifiers, inventory, subscriptions, branches, POS, and final dashboard features are intentionally not implemented.
+QR codes, cart, ordering, analytics, variants, modifiers, inventory, subscriptions, branches, POS, and final dashboard features are intentionally not implemented.
 
 Sprint 4 adds authenticated restaurant profile and brand settings. Restaurant slugs remain stable when names change. Logo and cover files use the public disk under `restaurants/{restaurant_id}/logo` and `restaurants/{restaurant_id}/cover`, with old files removed only after successful replacement.
 
 Opening hours require all seven English day keys whenever the field is updated, with one opening and closing time for each open day. Overnight hours and multiple shifts are not supported yet. Supported MVP currencies are `ILS`, `USD`, and `JOD`.
 
 Phone and WhatsApp normalization removes spaces, hyphens, and parentheses while preserving an optional leading `+`. MenuOS does not infer country codes or provide comprehensive international phone validation in this release.
+
+## Public restaurant menus (Sprint 5)
+
+Active restaurants are available without authentication at `GET /api/v1/public/menu/{slug}` and at the Vue route `/menu/{slug}`. The response includes only active categories containing available items, ordered by each record's `sort_order`. The public endpoint is limited to 60 requests per minute per IP and is intentionally unpaginated for moderate-sized MVP menus.
+
+Open status uses Laravel's `APP_TIMEZONE` and the restaurant's single daily interval. Missing or invalid hours return an unknown status; overnight schedules remain unsupported. Image URLs require `php artisan storage:link` in each deployment.
+
+Production hosting must send unknown frontend paths to `frontend/dist/index.html` so direct visits to `/menu/{slug}` work. For Nginx use `try_files $uri $uri/ /index.html`; for Apache enable the standard SPA rewrite; on Netlify add `/* /index.html 200`; on Vercel add an equivalent catch-all rewrite. Configure `VITE_API_URL` before building the frontend.
