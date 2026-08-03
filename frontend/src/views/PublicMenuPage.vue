@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPublicMenu } from '../services/publicMenu'
+import PublicMenuItemCard from '../components/PublicMenuItemCard.vue'
 
 const route = useRoute()
 const menu = ref(null)
@@ -97,25 +98,16 @@ onBeforeUnmount(() => {
         </nav>
 
         <section v-if="featuredItems.length && !search" class="public-menu-section">
-          <h2>Featured</h2><div class="public-menu-grid"><article v-for="item in featuredItems" :key="`featured-${item.id}`" class="public-menu-card"><MenuItemContent :item="item" :money="money" /></article></div>
+          <h2>Featured</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" /></div>
         </section>
 
         <div v-if="!menu.categories.length" class="public-menu-empty"><h2>Menu coming soon</h2><p>This restaurant has not published any available items yet.</p></div>
         <div v-else-if="!categories.length" class="public-menu-empty"><h2>No matches</h2><p>Try a different dish name or description.</p></div>
         <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="public-menu-section public-menu-category">
-          <h2>{{ category.name }}</h2><div class="public-menu-grid"><article v-for="item in category.menu_items" :key="item.id" class="public-menu-card"><MenuItemContent :item="item" :money="money" /></article></div>
+          <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" /></div>
         </section>
       </div>
       <footer class="public-menu-footer">Powered by MenuOS</footer>
     </template>
   </main>
 </template>
-
-<script>
-const MenuItemContent = {
-  props: { item: { type: Object, required: true }, money: { type: Function, required: true } },
-  template: `<div class="public-menu-image"><img v-if="item.image_url" :src="item.image_url" :alt="item.name" loading="lazy" width="640" height="400"><span v-else aria-hidden="true">No image</span></div><div class="public-menu-card-body"><div class="public-menu-card-title"><h3>{{ item.name }}</h3><strong>{{ money(item.price) }}</strong></div><p v-if="item.description">{{ item.description }}</p><span v-if="item.is_featured" class="public-menu-featured">Featured</span></div>`,
-}
-
-export default { components: { MenuItemContent } }
-</script>
