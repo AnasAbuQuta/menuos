@@ -5,12 +5,15 @@ import { getRestaurantQrCode } from '../services/restaurantQr'
 import BaseLoading from '../components/ui/BaseLoading.vue'
 import BaseAlert from '../components/ui/BaseAlert.vue'
 import { useToastStore } from '../stores/toast'
+import AppIcon from '../components/ui/AppIcon.vue'
+import { useI18n } from 'vue-i18n'
 
 const data = ref(null)
 const loading = ref(true)
 const error = ref('')
 const copied = ref(false)
 const toast = useToastStore()
+const { t } = useI18n()
 
 async function load() {
   loading.value = true
@@ -24,9 +27,9 @@ async function copyUrl() {
   try {
     await navigator.clipboard.writeText(data.value.public_menu_url)
     copied.value = true
-    toast.success('Public menu URL copied.')
+    toast.success(t('qr.copied'))
     window.setTimeout(() => { copied.value = false }, 2000)
-  } catch { error.value = 'Copy failed. Select and copy the URL manually.' }
+  } catch { error.value = t('management.qr.copyFailed'); toast.error(error.value) }
 }
 
 function download() {
@@ -34,6 +37,7 @@ function download() {
   link.href = data.value.qr_code
   link.download = 'menuos-restaurant-menu-qr.png'
   link.click()
+  toast.success(t('management.qr.downloaded'))
 }
 
 onMounted(load)
@@ -49,9 +53,9 @@ onMounted(load)
       <label>Public menu URL<input :value="data.public_menu_url" readonly @focus="$event.target.select()"></label>
       <BaseAlert v-if="copied" type="success">URL copied.</BaseAlert><BaseAlert v-else-if="error" type="error">{{ error }}</BaseAlert>
       <div class="form-actions">
-        <button class="button" type="button" @click="copyUrl">Copy URL</button>
-        <button class="button button-secondary" type="button" @click="download">Download PNG</button>
-        <a class="button button-secondary" :href="data.public_menu_url" target="_blank" rel="noopener noreferrer">Open public menu</a>
+        <button class="button" type="button" :title="$t('qr.copy')" @click="copyUrl"><AppIcon name="copy" :size="18" />{{ $t('qr.copy') }}</button>
+        <button class="button button-secondary" type="button" :title="$t('qr.download')" @click="download"><AppIcon name="download" :size="18" />{{ $t('qr.download') }}</button>
+        <a class="button button-secondary" :href="data.public_menu_url" target="_blank" rel="noopener noreferrer" :title="$t('qr.open')"><AppIcon name="external" :size="18" />{{ $t('qr.open') }}</a>
       </div>
     </div>
   </section>

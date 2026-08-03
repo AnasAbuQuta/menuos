@@ -120,3 +120,9 @@ The owner dashboard summarizes restaurant status, setup completion, category and
 Restaurant, category, and menu-item content can be stored independently in Arabic and English. At least one localized name is required; missing requested translations fall back to the other language and then to the legacy value. Existing records are backfilled into Arabic during migration. A restaurant's `default_language` controls public-menu responses when `?lang=ar` or `?lang=en` is omitted.
 
 The Vue interface uses Vue I18n, persists the selected interface language in `localStorage`, and updates the document `lang` and `dir` attributes for LTR/RTL layout. Public menus request localized content from `GET /api/v1/public/menu/{slug}?lang={ar|en}`. Legacy `name` and `description` response fields remain available during this compatibility phase; new integrations should use the bilingual fields on authenticated resources and the localized public response.
+
+## Interactive management (Sprint 8B)
+
+Category management includes client-side Arabic/English search, handle-based mouse and touch ordering through SortableJS, and keyboard move controls. Category activity plus menu-item featured and availability states update optimistically through the existing tenant-scoped partial update behavior and roll back when requests fail. No additional toggle endpoints were necessary.
+
+Management actions use a small local SVG icon component, localized native tooltips, accessible toggle semantics, and the existing live-region toast system. Public-menu preview actions derive URLs from the active frontend origin and restaurant slug rather than hardcoding a development host.

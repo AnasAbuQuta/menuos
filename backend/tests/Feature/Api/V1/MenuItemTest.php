@@ -260,6 +260,42 @@ class MenuItemTest extends TestCase
             ->assertJsonPath('data.menu_item.is_available', false)->assertJsonPath('data.menu_item.is_featured', true);
     }
 
+    public function test_direct_item_toggles_preserve_all_other_fields(): void
+    {
+        [$restaurant, $category] = $this->actingOwner();
+        $item = $this->item($restaurant, $category, [
+            'name' => 'بيتزا', 'name_ar' => 'بيتزا', 'name_en' => 'Pizza',
+            'description' => 'وصف', 'description_ar' => 'وصف', 'description_en' => 'Description',
+            'price' => '12.50', 'image' => 'menu-items/example.webp',
+            'is_available' => true, 'is_featured' => false,
+        ]);
+
+        $this->putJson("/api/v1/menu-items/{$item->id}", ['is_featured' => true])
+            ->assertOk()->assertJsonPath('data.menu_item.is_featured', true);
+        $this->putJson("/api/v1/menu-items/{$item->id}", ['is_available' => false])
+            ->assertOk()->assertJsonPath('data.menu_item.is_available', false);
+
+        $item->refresh();
+        $this->assertSame('بيتزا', $item->name_ar);
+        $this->assertSame('Pizza', $item->name_en);
+        $this->assertSame('وصف', $item->description_ar);
+        $this->assertSame('Description', $item->description_en);
+        $this->assertSame('12.50', $item->price);
+        $this->assertSame($category->id, $item->category_id);
+        $this->assertSame('menu-items/example.webp', $item->image);
+    }
+
+    public function test_foreign_item_cannot_be_toggled(): void
+    {
+        $this->actingOwner();
+        $foreign = MenuItem::factory()->create(['is_featured' => false, 'is_available' => true]);
+
+        $this->putJson("/api/v1/menu-items/{$foreign->id}", ['is_featured' => true])->assertNotFound();
+        $this->putJson("/api/v1/menu-items/{$foreign->id}", ['is_available' => false])->assertNotFound();
+        $this->assertFalse($foreign->fresh()->is_featured);
+        $this->assertTrue($foreign->fresh()->is_available);
+    }
+
     public function test_category_reassignment_to_owned_category_succeeds(): void
     {
         [$restaurant, $category] = $this->actingOwner();

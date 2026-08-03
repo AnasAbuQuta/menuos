@@ -83,6 +83,32 @@ class CategoryTest extends TestCase
             ->assertOk()->assertJsonPath('data.category.is_active', false);
     }
 
+    public function test_direct_status_updates_preserve_bilingual_content(): void
+    {
+        $restaurant = $this->actingOwner();
+        $category = Category::factory()->for($restaurant)->create([
+            'name' => 'مشروبات', 'name_ar' => 'مشروبات', 'name_en' => 'Drinks', 'is_active' => true,
+        ]);
+
+        $this->putJson("/api/v1/categories/{$category->id}", ['is_active' => false])
+            ->assertOk()->assertJsonPath('data.category.is_active', false);
+        $this->putJson("/api/v1/categories/{$category->id}", ['is_active' => true])
+            ->assertOk()->assertJsonPath('data.category.is_active', true);
+
+        $category->refresh();
+        $this->assertSame('مشروبات', $category->name_ar);
+        $this->assertSame('Drinks', $category->name_en);
+    }
+
+    public function test_foreign_category_status_cannot_be_updated(): void
+    {
+        $this->actingOwner();
+        $foreign = Category::factory()->create(['is_active' => true]);
+
+        $this->putJson("/api/v1/categories/{$foreign->id}", ['is_active' => false])->assertNotFound();
+        $this->assertTrue($foreign->fresh()->is_active);
+    }
+
     public function test_ordered_listing_uses_id_as_tie_breaker(): void
     {
         $restaurant = $this->actingOwner();
