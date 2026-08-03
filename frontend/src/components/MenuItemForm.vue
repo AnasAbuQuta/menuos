@@ -1,6 +1,8 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ImageEditorModal from './ImageEditorModal.vue'
+import { validateImageFile } from '../utils/imageEditor'
 
 const props = defineProps({
   item: { type: Object, default: null },
@@ -13,7 +15,8 @@ const form = reactive({ name_ar: '', name_en: '', category_id: '', description_a
 const image = ref(null)
 const previewUrl = ref('')
 const clientErrors = ref({})
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+const sourceImage = ref(null)
+const editorOpen = ref(false)
 const currentImage = computed(() => previewUrl.value || props.item?.image_url || '')
 const { t, locale } = useI18n()
 const categoryName = (category) => category[`name_${locale.value}`] || category.name_ar || category.name_en || category.name
@@ -47,18 +50,23 @@ function selectImage(event) {
   image.value = null
   clientErrors.value.image = ''
   if (!file) return
-  if (!allowedTypes.includes(file.type)) {
-    clientErrors.value.image = t('forms.imageType')
+  const validationError = validateImageFile(file)
+  if (validationError) {
+    clientErrors.value.image = file.size > 2 * 1024 * 1024 ? t('forms.imageSize') : t('forms.imageType')
     event.target.value = ''
     return
   }
-  if (file.size > 2 * 1024 * 1024) {
-    clientErrors.value.image = t('forms.imageSize')
-    event.target.value = ''
-    return
-  }
+  sourceImage.value = file
+  editorOpen.value = true
+  event.target.value = ''
+}
+
+function acceptEditedImage(file) {
+  revokePreview()
   image.value = file
   previewUrl.value = URL.createObjectURL(file)
+  editorOpen.value = false
+  sourceImage.value = null
 }
 
 function validate() {
@@ -119,5 +127,6 @@ onBeforeUnmount(revokePreview)
       <label class="checkbox-label"><input v-model="form.is_featured" type="checkbox" :disabled="saving">{{ $t('common.featured') }}</label>
     </div>
     <div class="form-actions"><button class="button" type="submit" :disabled="saving">{{ saving ? $t('restaurant.saving') : item ? $t('categories.update') : $t('forms.createItem') }}</button><button class="button button-secondary" type="button" :disabled="saving" @click="emit('cancel')">{{ $t('common.cancel') }}</button></div>
+    <ImageEditorModal :open="editorOpen" :file="sourceImage" profile="menuItem" @confirm="acceptEditedImage" @close="editorOpen = false; sourceImage = null" />
   </form>
 </template>
