@@ -1,0 +1,2 @@
+<script setup>import BaseButton from '../components/ui/BaseButton.vue'; import BaseEmptyState from '../components/ui/BaseEmptyState.vue'; function retry() { window.location.reload() }</script>
+<template><main class="route-state-page"><BaseEmptyState title="Connection interrupted" message="MenuOS could not reach the server. Check your connection and try again."><BaseButton @click="retry">Retry connection</BaseButton></BaseEmptyState></main></template>

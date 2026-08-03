@@ -1,9 +1,12 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import RestaurantImageField from '../components/RestaurantImageField.vue'
 import { useAuthStore } from '../stores/auth'
 import { apiError } from '../services/api'
 import { deleteCover, deleteLogo, getRestaurant, updateRestaurant, uploadCover, uploadLogo } from '../services/restaurant'
+import BaseLoading from '../components/ui/BaseLoading.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import { useToastStore } from '../stores/toast'
 
 const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const auth = useAuthStore()
@@ -11,9 +14,10 @@ const restaurant = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const imageBusy = reactive({ logo: false, cover: false })
+const imageProgress = reactive({ logo: 0, cover: 0 })
 const pageError = ref('')
 const errors = ref({})
-const success = ref('')
+const toast = useToastStore()
 const logoField = ref(null)
 const coverField = ref(null)
 const form = reactive({ name: '', description: '', is_active: true, whatsapp: '', phone: '', address: '', currency: 'ILS', primary_color: '#176B52', opening_hours: {} })
@@ -43,17 +47,17 @@ async function load() {
 
 async function save() {
   if (saving.value) return
-  errors.value = {}; success.value = ''
-  if (!form.name.trim()) { errors.value = { name: ['Restaurant name is required.'] }; return }
-  if (!colorValid.value) { errors.value = { primary_color: ['Use a six-digit hexadecimal color such as #E63946.'] }; return }
+  errors.value = {}
+  if (!form.name.trim()) { errors.value = { name: ['Restaurant name is required.'] }; await focusFirstError(); return }
+  if (!colorValid.value) { errors.value = { primary_color: ['Use a six-digit hexadecimal color such as #E63946.'] }; await focusFirstError(); return }
   saving.value = true
   try {
     const payload = JSON.parse(JSON.stringify(form))
     payload.name = payload.name.trim()
     payload.primary_color = payload.primary_color.toUpperCase()
     populate(await updateRestaurant(payload))
-    success.value = 'Restaurant settings saved successfully.'
-  } catch (error) { errors.value = error.response?.data?.errors ?? { general: [apiError(error, 'Unable to save settings.')] } }
+    toast.success('Restaurant settings saved successfully.')
+  } catch (error) { errors.value = error.response?.data?.errors ?? { general: [apiError(error, 'Unable to save settings.')] }; await focusFirstError() }
   finally { saving.value = false }
 }
 
@@ -64,34 +68,38 @@ function toggleDay(day) {
 }
 
 async function handleImage(type, file) {
-  imageBusy[type] = true; pageError.value = ''; success.value = ''
+  imageBusy[type] = true; imageProgress[type] = 0; pageError.value = ''
   try {
-    const updated = type === 'logo' ? await uploadLogo(file) : await uploadCover(file)
+    const progress = (value) => { imageProgress[type] = value }
+    const updated = type === 'logo' ? await uploadLogo(file, progress) : await uploadCover(file, progress)
     populate(updated)
     if (type === 'logo') logoField.value?.reset(); else coverField.value?.reset()
-    success.value = `Restaurant ${type} updated successfully.`
+    toast.success(`Restaurant ${type} updated successfully.`)
   } catch (error) { pageError.value = apiError(error, `Unable to upload ${type}.`) }
   finally { imageBusy[type] = false }
 }
 
 async function removeImage(type) {
-  imageBusy[type] = true; pageError.value = ''; success.value = ''
-  try { populate(type === 'logo' ? await deleteLogo() : await deleteCover()); success.value = `Restaurant ${type} removed.` }
+  imageBusy[type] = true; pageError.value = ''
+  try { populate(type === 'logo' ? await deleteLogo() : await deleteCover()); toast.success(`Restaurant ${type} removed.`) }
   catch (error) { pageError.value = apiError(error, `Unable to remove ${type}.`) }
   finally { imageBusy[type] = false }
 }
 
 function errorFor(field) { return errors.value[field]?.[0] || '' }
+async function focusFirstError() {
+  await nextTick()
+  document.querySelector('.settings-form .field-error')?.closest('label')?.querySelector('input, textarea, select')?.focus()
+}
 onMounted(load)
 </script>
 
 <template>
   <section class="restaurant-settings-page">
     <div><p class="eyebrow">Restaurant profile</p><h1>Restaurant Settings</h1><p>Manage the information and branding that will power your future public menu.</p></div>
-    <div v-if="loading" class="card state-card" aria-live="polite">Loading restaurant settings…</div>
+    <BaseLoading v-if="loading" :rows="6" label="Loading restaurant settings" />
     <div v-else-if="pageError && !restaurant" class="error-state" role="alert"><p>{{ pageError }}</p><button class="button button-secondary" type="button" @click="load">Try again</button></div>
     <template v-else>
-      <p v-if="success" class="success" role="status">{{ success }}</p>
       <p v-if="pageError" class="error" role="alert">{{ pageError }}</p>
       <p v-if="errors.general" class="error" role="alert">{{ errors.general[0] }}</p>
       <form class="settings-form" @submit.prevent="save">
@@ -99,7 +107,7 @@ onMounted(load)
         <section class="card settings-section"><div><h2>Contact Information</h2><p>Country codes are preserved but never guessed automatically.</p></div><div class="settings-grid"><label>WhatsApp<input v-model="form.whatsapp" type="tel" maxlength="30" placeholder="+970591234567" :disabled="saving"><span v-if="errorFor('whatsapp')" class="field-error">{{ errorFor('whatsapp') }}</span></label><label>Phone<input v-model="form.phone" type="tel" maxlength="30" placeholder="0591234567" :disabled="saving"><span v-if="errorFor('phone')" class="field-error">{{ errorFor('phone') }}</span></label><label class="full">Address<textarea v-model="form.address" rows="3" maxlength="2000" :disabled="saving" /><span v-if="errorFor('address')" class="field-error">{{ errorFor('address') }}</span></label></div></section>
         <section class="card settings-section"><div><h2>Brand Settings</h2><p>These values will be used by the future public menu.</p></div><div class="settings-grid"><label>Currency<select v-model="form.currency" :disabled="saving"><option value="ILS">ILS</option><option value="USD">USD</option><option value="JOD">JOD</option></select><span v-if="errorFor('currency')" class="field-error">{{ errorFor('currency') }}</span></label><label>Primary color<div class="color-control"><input v-model="form.primary_color" type="color" :disabled="saving"><input v-model.trim="form.primary_color" maxlength="7" placeholder="#E63946" :disabled="saving"></div><span v-if="errorFor('primary_color')" class="field-error">{{ errorFor('primary_color') }}</span></label></div><div class="brand-images"><RestaurantImageField ref="logoField" label="Logo" guidance="A square image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.logo_url" :busy="imageBusy.logo" @upload="handleImage('logo', $event)" @remove="removeImage('logo')" /><RestaurantImageField ref="coverField" label="Cover" guidance="A wide landscape image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.cover_image_url" :busy="imageBusy.cover" @upload="handleImage('cover', $event)" @remove="removeImage('cover')" /></div></section>
         <section class="card settings-section"><div><h2>Opening Hours</h2><p>Configure one daily shift. Overnight hours are not supported yet.</p></div><div class="hours-list"><div v-for="day in days" :key="day" class="hours-row"><strong>{{ day.charAt(0).toUpperCase() + day.slice(1) }}</strong><label class="checkbox-label"><input v-model="form.opening_hours[day].is_open" type="checkbox" :disabled="saving" @change="toggleDay(day)">Open</label><label>Opens<input v-model="form.opening_hours[day].open" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.open`)" class="field-error">{{ errorFor(`opening_hours.${day}.open`) }}</span></label><label>Closes<input v-model="form.opening_hours[day].close" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.close`)" class="field-error">{{ errorFor(`opening_hours.${day}.close`) }}</span></label></div></div></section>
-        <button class="button settings-save" type="submit" :disabled="saving">{{ saving ? 'Saving settings…' : 'Save settings' }}</button>
+        <BaseButton class="settings-save" type="submit" :loading="saving">Save settings</BaseButton>
       </form>
     </template>
   </section>

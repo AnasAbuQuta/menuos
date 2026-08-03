@@ -1,0 +1,2 @@
+<script setup>import { useToastStore } from '../stores/toast'; const toast = useToastStore()</script>
+<template><div class="toast-viewport" aria-live="polite" aria-relevant="additions"><TransitionGroup name="toast"><div v-for="item in toast.messages" :key="item.id" class="toast-item" :class="`toast-${item.type}`"><span>{{ item.message }}</span><button type="button" aria-label="Dismiss notification" @click="toast.dismiss(item.id)">×</button></div></TransitionGroup></div></template>

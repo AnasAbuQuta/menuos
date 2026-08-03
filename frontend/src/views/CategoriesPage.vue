@@ -2,6 +2,10 @@
 import { onMounted, ref } from 'vue'
 import CategoryForm from '../components/CategoryForm.vue'
 import { apiError } from '../services/api'
+import BaseConfirmDialog from '../components/ui/BaseConfirmDialog.vue'
+import BaseLoading from '../components/ui/BaseLoading.vue'
+import BaseEmptyState from '../components/ui/BaseEmptyState.vue'
+import { useToastStore } from '../stores/toast'
 import {
   createCategory,
   deleteCategory,
@@ -16,7 +20,9 @@ const saving = ref(false)
 const reordering = ref(false)
 const pageError = ref('')
 const formError = ref('')
-const success = ref('')
+const toast = useToastStore()
+const pendingDelete = ref(null)
+const deleting = ref(false)
 const showForm = ref(false)
 const editingCategory = ref(null)
 
@@ -55,15 +61,14 @@ async function save(payload) {
   if (saving.value) return
   saving.value = true
   formError.value = ''
-  success.value = ''
   try {
     if (editingCategory.value) {
       const updated = await updateCategory(editingCategory.value.id, payload)
       categories.value = categories.value.map((category) => category.id === updated.id ? updated : category)
-      success.value = 'Category updated successfully.'
+      toast.success('Category updated successfully.')
     } else {
       categories.value.push(await createCategory(payload))
-      success.value = 'Category created successfully.'
+      toast.success('Category created successfully.')
     }
     closeForm()
   } catch (error) {
@@ -74,20 +79,21 @@ async function save(payload) {
   }
 }
 
-async function remove(category) {
-  const confirmed = window.confirm(`Remove “${category.name}”? This category will be permanently deleted.`)
-  if (!confirmed) return
-
+function remove(category) { pendingDelete.value = category }
+async function confirmRemove() {
+  const category = pendingDelete.value
+  if (!category || deleting.value) return
+  deleting.value = true
   pageError.value = ''
-  success.value = ''
   try {
     await deleteCategory(category.id)
     categories.value = categories.value.filter((item) => item.id !== category.id)
     categories.value.forEach((item, index) => { item.sort_order = index })
-    success.value = 'Category deleted successfully.'
+    toast.success('Category deleted successfully.')
+    pendingDelete.value = null
   } catch (error) {
     pageError.value = apiError(error, 'Unable to delete the category.')
-  }
+  } finally { deleting.value = false }
 }
 
 async function move(index, offset) {
@@ -100,11 +106,10 @@ async function move(index, offset) {
   categories.value = reordered
   reordering.value = true
   pageError.value = ''
-  success.value = ''
 
   try {
     categories.value = await reorderCategories(reordered.map(({ id }) => id))
-    success.value = 'Category order saved.'
+    toast.success('Category order saved.')
   } catch (error) {
     categories.value = previous
     pageError.value = apiError(error, 'Unable to save category order.')
@@ -127,7 +132,6 @@ onMounted(load)
       <button class="button" type="button" @click="openCreate">Add category</button>
     </div>
 
-    <p v-if="success" class="success" role="status">{{ success }}</p>
     <div v-if="pageError" class="error-state" role="alert">
       <p>{{ pageError }}</p>
       <button class="button button-secondary" type="button" @click="load">Try again</button>
@@ -143,12 +147,8 @@ onMounted(load)
       />
     </div>
 
-    <div v-if="loading" class="card state-card" aria-live="polite">Loading categories…</div>
-    <div v-else-if="!pageError && categories.length === 0" class="card state-card">
-      <h2>No categories yet</h2>
-      <p>Add your first category to start organizing your menu.</p>
-      <button class="button" type="button" @click="openCreate">Add first category</button>
-    </div>
+    <BaseLoading v-if="loading" :rows="4" label="Loading categories" />
+    <BaseEmptyState v-else-if="!pageError && categories.length === 0" title="No categories yet" message="Add your first category to start organizing your menu."><button class="button" type="button" @click="openCreate">Add first category</button></BaseEmptyState>
 
     <ul v-else-if="!pageError" class="category-list" aria-label="Restaurant categories">
       <li v-for="(category, index) in categories" :key="category.id" class="card category-row">
@@ -166,5 +166,6 @@ onMounted(load)
         </div>
       </li>
     </ul>
+    <BaseConfirmDialog :open="Boolean(pendingDelete)" title="Delete category?" :message="`Remove “${pendingDelete?.name}”? This cannot be undone.`" confirm-label="Delete category" danger :loading="deleting" @confirm="confirmRemove" @cancel="pendingDelete = null" />
   </section>
 </template>

@@ -1,0 +1,2 @@
+<script setup>import BaseButton from '../components/ui/BaseButton.vue'; import BaseEmptyState from '../components/ui/BaseEmptyState.vue'</script>
+<template><main class="route-state-page"><BaseEmptyState title="Page not found" message="The page you requested does not exist or may have moved."><RouterLink to="/"><BaseButton>Return home</BaseButton></RouterLink></BaseEmptyState></main></template>

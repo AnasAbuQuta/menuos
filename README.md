@@ -108,3 +108,9 @@ Authenticated owners can view and download a PNG QR code from `/qr-code`. Larave
 Public-menu carts are client-side only and stored in `localStorage` under a restaurant-specific key. Stored identifiers and quantities are validated against the currently available public menu on every load, preventing stale items and cross-restaurant mixing. The cart is not an order record and is never submitted to MenuOS.
 
 WhatsApp ordering opens `wa.me` with an encoded Arabic summary containing unit prices, quantities, line totals, the grand total, and an optional note. MenuOS strips formatting characters from the configured WhatsApp number but does not infer country codes. Opening WhatsApp does not clear the cart, and no payment, fulfillment, delivery, or internal order tracking is included.
+
+## Product experience (Sprint 7)
+
+The Vue application uses a lightweight in-house design system for buttons, fields, cards, badges, alerts, skeleton loading, empty states, modals, confirmations, and accessible toast feedback. Authenticated routes and public-menu routes are lazy-loaded into separate production chunks to reduce initial JavaScript work.
+
+The owner dashboard summarizes restaurant status, setup completion, category and menu-item counts, and quick links without introducing analytics. The application includes dedicated not-found, unauthorized, and network-error experiences, keyboard focus trapping for modal dialogs, reduced-motion support, responsive owner navigation, touch-friendly controls, image fallbacks, and consistent mobile layouts.

@@ -1,9 +1,12 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import BaseButton from '../components/ui/BaseButton.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const menuOpen = ref(false)
 
 async function logout() {
   await auth.logout()
@@ -16,7 +19,8 @@ async function logout() {
     <header class="app-header">
       <div class="app-navigation">
         <RouterLink class="brand" to="/app/dashboard">MenuOS</RouterLink>
-        <nav v-if="auth.hasRestaurant" aria-label="Main navigation">
+        <button v-if="auth.hasRestaurant" class="mobile-nav-toggle" type="button" :aria-expanded="menuOpen" aria-controls="main-navigation" aria-label="Toggle navigation" @click="menuOpen = !menuOpen">☰</button>
+        <nav v-if="auth.hasRestaurant" id="main-navigation" :class="{ open: menuOpen }" aria-label="Main navigation" @click="menuOpen = false">
           <RouterLink to="/app/dashboard">Dashboard</RouterLink>
           <RouterLink to="/restaurant">Restaurant</RouterLink>
           <RouterLink to="/categories">Categories</RouterLink>
@@ -26,7 +30,7 @@ async function logout() {
       </div>
       <div class="header-actions">
         <span>{{ auth.user?.name }}</span>
-        <button class="button button-secondary" type="button" @click="logout">Log out</button>
+        <BaseButton variant="ghost" @click="logout">Log out</BaseButton>
       </div>
     </header>
     <main class="app-content"><RouterView /></main>

@@ -3,6 +3,10 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { apiError } from '../services/api'
+import BaseAlert from '../components/ui/BaseAlert.vue'
+import BaseButton from '../components/ui/BaseButton.vue'
+import BaseInput from '../components/ui/BaseInput.vue'
+import BaseTextarea from '../components/ui/BaseTextarea.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -11,6 +15,7 @@ const error = ref('')
 const loading = ref(false)
 
 async function submit() {
+  if (loading.value) return
   error.value = ''
   loading.value = true
   const payload = Object.fromEntries(Object.entries(form).filter(([, value]) => value !== ''))
@@ -28,16 +33,16 @@ async function submit() {
 <template>
   <section class="card setup-card">
     <div><p class="eyebrow">Restaurant setup</p><h1>Tell us about your restaurant</h1><p>You can update these details later.</p></div>
-    <p v-if="error" class="error" role="alert">{{ error }}</p>
+    <BaseAlert v-if="error" type="error">{{ error }}</BaseAlert>
     <form class="form-grid" @submit.prevent="submit">
-      <label class="full">Restaurant name<input v-model.trim="form.name" required></label>
-      <label class="full">Description<textarea v-model.trim="form.description" rows="3" /></label>
-      <label>WhatsApp<input v-model.trim="form.whatsapp" type="tel"></label>
-      <label>Phone<input v-model.trim="form.phone" type="tel"></label>
-      <label class="full">Address<textarea v-model.trim="form.address" rows="2" /></label>
-      <label>Currency<input v-model.trim="form.currency" maxlength="3" required></label>
+      <BaseInput v-model="form.name" full label="Restaurant name" maxlength="255" required autofocus />
+      <BaseTextarea v-model="form.description" full label="Description" :maxlength="5000" rows="3" />
+      <BaseInput v-model="form.whatsapp" label="WhatsApp" type="tel" maxlength="30" hint="Include country code" />
+      <BaseInput v-model="form.phone" label="Phone" type="tel" maxlength="30" />
+      <BaseTextarea v-model="form.address" full label="Address" :maxlength="2000" rows="2" />
+      <BaseInput v-model="form.currency" label="Currency" maxlength="3" required />
       <label>Primary color<input v-model="form.primary_color" type="color"></label>
-      <button class="button full" type="submit" :disabled="loading">{{ loading ? 'Creating…' : 'Create restaurant' }}</button>
+      <BaseButton class="full" type="submit" :loading="loading">Create restaurant</BaseButton>
     </form>
   </section>
 </template>

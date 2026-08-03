@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   item: { type: Object, default: null },
@@ -71,8 +71,12 @@ function validate() {
   return Object.keys(errors).length === 0
 }
 
-function submit() {
-  if (!validate() || props.saving) return
+async function submit() {
+  if (!validate() || props.saving) {
+    await nextTick()
+    document.querySelector('.menu-item-form .field-error')?.closest('label')?.querySelector('input, textarea, select')?.focus()
+    return
+  }
   const data = new FormData()
   data.append('name', form.name.trim())
   data.append('category_id', String(form.category_id))

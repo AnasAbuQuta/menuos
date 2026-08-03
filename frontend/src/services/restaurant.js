@@ -10,15 +10,17 @@ export async function updateRestaurant(payload) {
   return data.data.restaurant
 }
 
-async function uploadImage(endpoint, file) {
+async function uploadImage(endpoint, file, onProgress) {
   const formData = new FormData()
   formData.append('image', file)
-  const { data } = await api.post(`/restaurant/${endpoint}`, formData)
+  const { data } = await api.post(`/restaurant/${endpoint}`, formData, {
+    onUploadProgress: (event) => onProgress?.(event.total ? Math.round(event.loaded / event.total * 100) : 0),
+  })
   return data.data.restaurant
 }
 
-export const uploadLogo = (file) => uploadImage('logo', file)
-export const uploadCover = (file) => uploadImage('cover', file)
+export const uploadLogo = (file, onProgress) => uploadImage('logo', file, onProgress)
+export const uploadCover = (file, onProgress) => uploadImage('cover', file, onProgress)
 
 export async function deleteLogo() {
   const { data } = await api.delete('/restaurant/logo')

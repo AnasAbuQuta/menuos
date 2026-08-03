@@ -5,6 +5,8 @@ import { getPublicMenu } from '../services/publicMenu'
 import PublicMenuItemCard from '../components/PublicMenuItemCard.vue'
 import PublicCartDrawer from '../components/PublicCartDrawer.vue'
 import { useCartStore } from '../stores/cart'
+import BaseLoading from '../components/ui/BaseLoading.vue'
+import BaseEmptyState from '../components/ui/BaseEmptyState.vue'
 
 const route = useRoute()
 const menu = ref(null)
@@ -69,9 +71,7 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="public-menu-page" :style="{ '--menu-brand': brandColor }">
-    <section v-if="loading" class="public-menu-state" aria-live="polite">
-      <div class="public-menu-spinner" aria-hidden="true"></div><p>Loading menu…</p>
-    </section>
+    <section v-if="loading" class="public-menu-loading"><BaseLoading :rows="6" label="Loading restaurant menu" /></section>
     <section v-else-if="notFound" class="public-menu-state">
       <span class="public-menu-code">404</span><h1>Menu not found</h1><p>This restaurant menu is unavailable.</p>
     </section>
@@ -106,8 +106,8 @@ onBeforeUnmount(() => {
           <h2>Featured</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
         </section>
 
-        <div v-if="!menu.categories.length" class="public-menu-empty"><h2>Menu coming soon</h2><p>This restaurant has not published any available items yet.</p></div>
-        <div v-else-if="!categories.length" class="public-menu-empty"><h2>No matches</h2><p>Try a different dish name or description.</p></div>
+        <BaseEmptyState v-if="!menu.categories.length" title="Menu coming soon" message="This restaurant has not published any available items yet." />
+        <BaseEmptyState v-else-if="!categories.length" title="No matches" message="Try a different dish name or description." />
         <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="public-menu-section public-menu-category">
           <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
         </section>

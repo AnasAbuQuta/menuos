@@ -1,17 +1,20 @@
 <script setup>
 import { onBeforeUnmount, ref } from 'vue'
+import BaseConfirmDialog from './ui/BaseConfirmDialog.vue'
 
 const props = defineProps({
   label: { type: String, required: true },
   guidance: { type: String, required: true },
   currentUrl: { type: String, default: '' },
   busy: { type: Boolean, default: false },
+  progress: { type: Number, default: 0 },
 })
 const emit = defineEmits(['upload', 'remove'])
 const file = ref(null)
 const previewUrl = ref('')
 const error = ref('')
 const allowed = ['image/jpeg', 'image/png', 'image/webp']
+const confirmingRemove = ref(false)
 
 function revokePreview() {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
@@ -43,7 +46,7 @@ function upload() {
 }
 
 function remove() {
-  if (window.confirm(`Remove the restaurant ${props.label.toLowerCase()}?`)) emit('remove')
+  confirmingRemove.value = true
 }
 
 function reset() {
@@ -60,14 +63,16 @@ onBeforeUnmount(revokePreview)
   <div class="brand-image-field">
     <div><h3>{{ label }}</h3><p>{{ guidance }}</p></div>
     <div class="brand-image-preview">
-      <img v-if="previewUrl || currentUrl" :src="previewUrl || currentUrl" :alt="`Restaurant ${label.toLowerCase()} preview`">
+      <img v-if="previewUrl || currentUrl" :src="previewUrl || currentUrl" :alt="`Restaurant ${label.toLowerCase()} preview`" loading="lazy">
       <span v-else>No {{ label.toLowerCase() }} uploaded</span>
     </div>
     <label>Choose image<input type="file" accept="image/jpeg,image/png,image/webp" :disabled="busy" @change="selectFile"></label>
     <p v-if="error" class="field-error" role="alert">{{ error }}</p>
+    <div v-if="busy" class="upload-progress" :class="{ indeterminate: progress === 0 }" role="progressbar" aria-label="Image upload progress" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"><span :style="{ width: `${progress}%` }"></span></div>
     <div class="form-actions">
       <button class="button" type="button" :disabled="busy || !file" @click="upload">{{ busy ? 'Uploading…' : previewUrl ? `Upload ${label}` : `Choose ${label}` }}</button>
       <button v-if="currentUrl" class="button button-danger" type="button" :disabled="busy" @click="remove">Remove</button>
     </div>
+    <BaseConfirmDialog :open="confirmingRemove" :title="`Remove ${label}?`" :message="`Remove the restaurant ${label.toLowerCase()}?`" confirm-label="Remove image" danger :loading="busy" @confirm="confirmingRemove = false; emit('remove')" @cancel="confirmingRemove = false" />
   </div>
 </template>
