@@ -16,9 +16,12 @@ export async function createMenuItem(formData) {
   return data.data.menu_item
 }
 
-export async function updateMenuItem(id, formData) {
-  formData.set('_method', 'PUT')
-  const { data } = await api.post(`/menu-items/${id}`, formData)
+export async function updateMenuItem(id, payload) {
+  const isFormData = payload instanceof FormData
+  if (isFormData) payload.set('_method', 'PUT')
+  const { data } = isFormData
+    ? await api.post(`/menu-items/${id}`, payload)
+    : await api.put(`/menu-items/${id}`, payload)
   return data.data.menu_item
 }
 

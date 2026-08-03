@@ -8,6 +8,7 @@ import BaseLoading from '../components/ui/BaseLoading.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
 import { useToastStore } from '../stores/toast'
 import { useI18n } from 'vue-i18n'
+import PublicMenuPreview from '../components/PublicMenuPreview.vue'
 
 const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const auth = useAuthStore()
@@ -59,7 +60,7 @@ async function save() {
     payload.name_en = payload.name_en.trim() || null
     payload.primary_color = payload.primary_color.toUpperCase()
     populate(await updateRestaurant(payload))
-    toast.success('Restaurant settings saved successfully.')
+    toast.success(t('restaurant.saved'))
   } catch (error) { errors.value = error.response?.data?.errors ?? { general: [apiError(error, 'Unable to save settings.')] }; await focusFirstError() }
   finally { saving.value = false }
 }
@@ -77,14 +78,14 @@ async function handleImage(type, file) {
     const updated = type === 'logo' ? await uploadLogo(file, progress) : await uploadCover(file, progress)
     populate(updated)
     if (type === 'logo') logoField.value?.reset(); else coverField.value?.reset()
-    toast.success(`Restaurant ${type} updated successfully.`)
+    toast.success(t(type === 'logo' ? 'restaurant.logoUpdated' : 'restaurant.coverUpdated'))
   } catch (error) { pageError.value = apiError(error, `Unable to upload ${type}.`) }
   finally { imageBusy[type] = false }
 }
 
 async function removeImage(type) {
   imageBusy[type] = true; pageError.value = ''
-  try { populate(type === 'logo' ? await deleteLogo() : await deleteCover()); toast.success(`Restaurant ${type} removed.`) }
+  try { populate(type === 'logo' ? await deleteLogo() : await deleteCover()); toast.success(t('restaurant.imageRemoved')) }
   catch (error) { pageError.value = apiError(error, `Unable to remove ${type}.`) }
   finally { imageBusy[type] = false }
 }
@@ -99,7 +100,7 @@ onMounted(load)
 
 <template>
   <section class="restaurant-settings-page">
-    <div><p class="eyebrow">Restaurant profile</p><h1>Restaurant Settings</h1><p>Manage the information and branding that will power your future public menu.</p></div>
+    <div class="page-heading"><div><p class="eyebrow">{{ $t('restaurant.profile') }}</p><h1>{{ $t('restaurant.settings') }}</h1><p>{{ $t('restaurant.settingsIntro') }}</p></div><PublicMenuPreview :restaurant="restaurant" /></div>
     <BaseLoading v-if="loading" :rows="6" label="Loading restaurant settings" />
     <div v-else-if="pageError && !restaurant" class="error-state" role="alert"><p>{{ pageError }}</p><button class="button button-secondary" type="button" @click="load">Try again</button></div>
     <template v-else>
