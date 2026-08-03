@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
         </section>
       </div>
       <footer class="public-menu-footer">{{ $t('public.powered') }}</footer>
-      <button class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
+      <button v-if="!cartOpen" class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
       <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" />
     </template>
   </main>
