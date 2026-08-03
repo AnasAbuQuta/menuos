@@ -9,6 +9,7 @@ import CategoriesPage from '../views/CategoriesPage.vue'
 import MenuItemsPage from '../views/MenuItemsPage.vue'
 import RestaurantSettingsPage from '../views/RestaurantSettingsPage.vue'
 import PublicMenuPage from '../views/PublicMenuPage.vue'
+import QrCodePage from '../views/QrCodePage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,6 +32,10 @@ const router = createRouter({
     {
       path: '/restaurant', component: AppShell, meta: { requiresAuth: true },
       children: [{ path: '', name: 'restaurant-settings', component: RestaurantSettingsPage }],
+    },
+    {
+      path: '/qr-code', component: AppShell, meta: { requiresAuth: true },
+      children: [{ path: '', name: 'qr-code', component: QrCodePage }],
     },
     {
       path: '/menu-items', component: AppShell, meta: { requiresAuth: true },

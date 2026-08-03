@@ -3,6 +3,7 @@ defineProps({
   item: { type: Object, required: true },
   formattedPrice: { type: String, required: true },
 })
+defineEmits(['add'])
 </script>
 
 <template>
@@ -18,6 +19,7 @@ defineProps({
       </div>
       <p v-if="item.description">{{ item.description }}</p>
       <span v-if="item.is_featured" class="public-menu-featured">Featured</span>
+      <button class="public-menu-add" type="button" :aria-label="`Add ${item.name} to cart`" @click="$emit('add', item)">Add to cart</button>
     </div>
   </article>
 </template>

@@ -8,13 +8,17 @@ use App\Http\Requests\Restaurant\UpdateRestaurantRequest;
 use App\Http\Requests\Restaurant\UploadRestaurantImageRequest;
 use App\Http\Resources\RestaurantResource;
 use App\Models\Restaurant;
+use App\Services\RestaurantQrCodeService;
 use App\Services\RestaurantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
 {
-    public function __construct(private readonly RestaurantService $restaurantService) {}
+    public function __construct(
+        private readonly RestaurantService $restaurantService,
+        private readonly RestaurantQrCodeService $restaurantQrCodeService,
+    ) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -61,6 +65,17 @@ class RestaurantController extends Controller
     public function deleteCover(Request $request): JsonResponse
     {
         return $this->deleteImage($request, 'cover_image', 'Restaurant cover removed.');
+    }
+
+    public function qrCode(Request $request): JsonResponse
+    {
+        $restaurant = $this->ownedRestaurant($request);
+        $this->authorize('view', $restaurant);
+
+        return response()->json([
+            'message' => 'Restaurant QR code generated.',
+            'data' => $this->restaurantQrCodeService->generate($restaurant),
+        ]);
     }
 
     private function uploadImage(UploadRestaurantImageRequest $request, string $field, string $directory, string $message): JsonResponse

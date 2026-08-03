@@ -30,6 +30,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('cover', [RestaurantController::class, 'uploadCover']);
         Route::delete('logo', [RestaurantController::class, 'deleteLogo']);
         Route::delete('cover', [RestaurantController::class, 'deleteCover']);
+        Route::get('qr-code', [RestaurantController::class, 'qrCode']);
     });
 
     Route::middleware('auth:sanctum')->prefix('categories')->group(function (): void {

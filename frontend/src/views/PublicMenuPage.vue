@@ -3,6 +3,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPublicMenu } from '../services/publicMenu'
 import PublicMenuItemCard from '../components/PublicMenuItemCard.vue'
+import PublicCartDrawer from '../components/PublicCartDrawer.vue'
+import { useCartStore } from '../stores/cart'
 
 const route = useRoute()
 const menu = ref(null)
@@ -10,6 +12,8 @@ const loading = ref(true)
 const notFound = ref(false)
 const error = ref('')
 const search = ref('')
+const cartOpen = ref(false)
+const cart = useCartStore()
 const originalTitle = document.title
 const descriptionMeta = document.querySelector('meta[name="description"]')
 const originalDescription = descriptionMeta?.content || ''
@@ -45,6 +49,7 @@ async function loadMenu() {
   error.value = ''
   try {
     menu.value = await getPublicMenu(route.params.slug)
+    cart.initialize(menu.value.slug, menu.value.categories.flatMap((category) => category.menu_items))
     await nextTick()
     setMetadata()
   } catch (requestError) {
@@ -98,16 +103,18 @@ onBeforeUnmount(() => {
         </nav>
 
         <section v-if="featuredItems.length && !search" class="public-menu-section">
-          <h2>Featured</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" /></div>
+          <h2>Featured</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in featuredItems" :key="`featured-${item.id}`" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
         </section>
 
         <div v-if="!menu.categories.length" class="public-menu-empty"><h2>Menu coming soon</h2><p>This restaurant has not published any available items yet.</p></div>
         <div v-else-if="!categories.length" class="public-menu-empty"><h2>No matches</h2><p>Try a different dish name or description.</p></div>
         <section v-for="category in categories" :id="`category-${category.id}`" :key="category.id" class="public-menu-section public-menu-category">
-          <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" /></div>
+          <h2>{{ category.name }}</h2><div class="public-menu-grid"><PublicMenuItemCard v-for="item in category.menu_items" :key="item.id" :item="item" :formatted-price="money(item.price)" @add="cart.add" /></div>
         </section>
       </div>
       <footer class="public-menu-footer">Powered by MenuOS</footer>
+      <button class="public-cart-floating" type="button" aria-label="Open shopping cart" @click="cartOpen = true"><span>Cart</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
+      <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" />
     </template>
   </main>
 </template>

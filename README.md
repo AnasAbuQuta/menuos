@@ -65,7 +65,7 @@ cd frontend
 npm run build
 ```
 
-Set `FRONTEND_URL` to the Vue origin and `SANCTUM_TOKEN_EXPIRATION` to the desired token lifetime in minutes. Set `VITE_API_URL` in `frontend/.env` when the API is not available at `http://127.0.0.1:8000/api/v1`.
+Set `FRONTEND_URL` to the Vue origin, `PUBLIC_FRONTEND_URL` to the publicly reachable Vue origin, and `SANCTUM_TOKEN_EXPIRATION` to the desired token lifetime in minutes. Set `VITE_API_URL` in `frontend/.env` when the API is not available at `http://127.0.0.1:8000/api/v1`.
 
 ## Verify
 
@@ -100,3 +100,11 @@ Active restaurants are available without authentication at `GET /api/v1/public/m
 Open status uses Laravel's `APP_TIMEZONE` and the restaurant's single daily interval. Missing or invalid hours return an unknown status; overnight schedules remain unsupported. Image URLs require `php artisan storage:link` in each deployment.
 
 Production hosting must send unknown frontend paths to `frontend/dist/index.html` so direct visits to `/menu/{slug}` work. For Nginx use `try_files $uri $uri/ /index.html`; for Apache enable the standard SPA rewrite; on Netlify add `/* /index.html 200`; on Vercel add an equivalent catch-all rewrite. Configure `VITE_API_URL` before building the frontend.
+
+## QR codes and WhatsApp ordering (Sprint 6)
+
+Authenticated owners can view and download a PNG QR code from `/qr-code`. Laravel generates it locally from `{PUBLIC_FRONTEND_URL}/menu/{restaurant-slug}` through `GET /api/v1/restaurant/qr-code`; deployment configuration must use a public HTTPS frontend URL so phones can open it.
+
+Public-menu carts are client-side only and stored in `localStorage` under a restaurant-specific key. Stored identifiers and quantities are validated against the currently available public menu on every load, preventing stale items and cross-restaurant mixing. The cart is not an order record and is never submitted to MenuOS.
+
+WhatsApp ordering opens `wa.me` with an encoded Arabic summary containing unit prices, quantities, line totals, the grand total, and an optional note. MenuOS strips formatting characters from the configured WhatsApp number but does not infer country codes. Opening WhatsApp does not clear the cart, and no payment, fulfillment, delivery, or internal order tracking is included.

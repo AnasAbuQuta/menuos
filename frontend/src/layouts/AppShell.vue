@@ -21,6 +21,7 @@ async function logout() {
           <RouterLink to="/restaurant">Restaurant</RouterLink>
           <RouterLink to="/categories">Categories</RouterLink>
           <RouterLink to="/menu-items">Menu Items</RouterLink>
+          <RouterLink to="/qr-code">QR Code</RouterLink>
         </nav>
       </div>
       <div class="header-actions">
