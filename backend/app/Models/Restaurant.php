@@ -37,6 +37,11 @@ class Restaurant extends Model
         return $this->hasMany(MenuItem::class);
     }
 
+    public function analyticsEvents(): HasMany
+    {
+        return $this->hasMany(AnalyticsEvent::class);
+    }
+
     protected function casts(): array
     {
         return ['opening_hours' => 'array', 'is_active' => 'boolean'];

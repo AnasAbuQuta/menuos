@@ -30,6 +30,6 @@ class RestaurantQrCodeService
 
     public function publicMenuUrl(Restaurant $restaurant): string
     {
-        return rtrim(config('app.public_frontend_url'), '/').'/menu/'.$restaurant->slug;
+        return rtrim(config('app.public_frontend_url'), '/').'/menu/'.$restaurant->slug.'?source=qr';
     }
 }

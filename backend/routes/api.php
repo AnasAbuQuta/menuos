@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AnalyticsController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\MenuItemController;
@@ -11,6 +12,9 @@ Route::prefix('v1')->group(function (): void {
     Route::get('public/menu/{slug}', PublicMenuController::class)
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
         ->middleware('throttle:public-menu');
+    Route::post('public/menu/{slug}/analytics', [AnalyticsController::class, 'store'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->middleware('throttle:public-analytics');
 
     Route::prefix('auth')->group(function (): void {
         Route::post('register', [AuthController::class, 'register']);
@@ -31,6 +35,7 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('logo', [RestaurantController::class, 'deleteLogo']);
         Route::delete('cover', [RestaurantController::class, 'deleteCover']);
         Route::get('qr-code', [RestaurantController::class, 'qrCode']);
+        Route::get('analytics', [AnalyticsController::class, 'dashboard']);
     });
 
     Route::middleware('auth:sanctum')->prefix('categories')->group(function (): void {

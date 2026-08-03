@@ -21,7 +21,7 @@ class RestaurantQrCodeTest extends TestCase
 
         $this->getJson('/api/v1/restaurant/qr-code')
             ->assertOk()
-            ->assertJsonPath('data.public_menu_url', 'https://menu.example.com/menu/owners-cafe')
+            ->assertJsonPath('data.public_menu_url', 'https://menu.example.com/menu/owners-cafe?source=qr')
             ->assertJson(fn ($json) => $json
                 ->whereType('data.qr_code', 'string')
                 ->where('data.qr_code', fn ($value) => str_starts_with($value, 'data:image/png;base64,'))
@@ -54,7 +54,7 @@ class RestaurantQrCodeTest extends TestCase
 
         $this->getJson('/api/v1/restaurant/qr-code')
             ->assertOk()
-            ->assertJsonPath('data.public_menu_url', 'https://menus.example/menu/my-menu')
+            ->assertJsonPath('data.public_menu_url', 'https://menus.example/menu/my-menu?source=qr')
             ->assertJsonMissing(['private-owner']);
     }
 }

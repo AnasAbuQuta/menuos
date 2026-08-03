@@ -3,12 +3,12 @@ defineProps({
   item: { type: Object, required: true },
   formattedPrice: { type: String, required: true },
 })
-defineEmits(['add'])
+defineEmits(['add', 'view'])
 import AppImage from './AppImage.vue'
 </script>
 
 <template>
-  <article class="public-menu-card">
+  <article class="public-menu-card" tabindex="0" @click="$emit('view', item)" @keydown.enter="$emit('view', item)">
     <div class="public-menu-image"><AppImage :src="item.image_url" :alt="item.name" /></div>
     <div class="public-menu-card-body">
       <div class="public-menu-card-title">
@@ -17,7 +17,7 @@ import AppImage from './AppImage.vue'
       </div>
       <p v-if="item.description">{{ item.description }}</p>
       <span v-if="item.is_featured" class="public-menu-featured">Featured</span>
-      <button class="public-menu-add" type="button" :aria-label="`Add ${item.name} to cart`" @click="$emit('add', item)">Add to cart</button>
+      <button class="public-menu-add" type="button" :aria-label="`Add ${item.name} to cart`" @click.stop="$emit('add', item)">Add to cart</button>
     </div>
   </article>
 </template>

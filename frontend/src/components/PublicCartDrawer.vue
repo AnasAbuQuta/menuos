@@ -8,7 +8,7 @@ const props = defineProps({
   restaurant: { type: Object, required: true },
   formatMoney: { type: Function, required: true },
 })
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'whatsapp'])
 const cart = useCartStore()
 const closeButton = ref(null)
 const whatsappNumber = computed(() => normalizeWhatsAppNumber(props.restaurant.whatsapp))
@@ -23,6 +23,7 @@ function sendOrder() {
     note: cart.note,
     formatMoney: props.formatMoney,
   })
+  emit('whatsapp')
   window.open(whatsappOrderUrl(props.restaurant.whatsapp, message), '_blank', 'noopener,noreferrer')
 }
 

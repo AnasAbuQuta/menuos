@@ -17,6 +17,6 @@ class PublicMenuController extends Controller
         return response()->json([
             'message' => 'Public menu retrieved.',
             'data' => ['menu' => new PublicRestaurantMenuResource($this->publicMenuService->findBySlug($slug, $request->validated('lang')))],
-        ]);
+        ])->header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     }
 }

@@ -1,0 +1,1 @@
+{"name":"MenuOS Restaurant Menus","short_name":"MenuOS","description":"Fast digital restaurant menus powered by MenuOS.","start_url":"/","scope":"/","display":"standalone","background_color":"#f5f8f6","theme_color":"#176b52","orientation":"portrait-primary","icons":[{"src":"/pwa-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
