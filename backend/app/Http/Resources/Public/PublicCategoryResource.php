@@ -11,7 +11,7 @@ class PublicCategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->getLocalizedName($this->active_language),
             'sort_order' => $this->sort_order,
             'menu_items' => PublicMenuItemResource::collection($this->whenLoaded('menuItems')),
         ];

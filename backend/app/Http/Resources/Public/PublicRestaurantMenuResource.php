@@ -12,9 +12,11 @@ class PublicRestaurantMenuResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'language' => $this->active_language,
+            'available_languages' => ['ar', 'en'],
+            'name' => $this->getLocalizedName($this->active_language),
             'slug' => $this->slug,
-            'description' => $this->description,
+            'description' => $this->getLocalizedDescription($this->active_language),
             'logo_url' => $this->logo ? Storage::disk('public')->url($this->logo) : null,
             'cover_image_url' => $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null,
             'whatsapp' => $this->whatsapp,

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedContent;
 use Database\Factories\MenuItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,13 +11,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'category_id', 'name', 'description', 'price', 'image',
+    'category_id', 'name', 'name_ar', 'name_en', 'description', 'description_ar', 'description_en', 'price', 'image',
     'is_available', 'is_featured', 'sort_order',
 ])]
 class MenuItem extends Model
 {
     /** @use HasFactory<MenuItemFactory> */
     use HasFactory;
+
+    use HasLocalizedContent;
 
     public function restaurant(): BelongsTo
     {

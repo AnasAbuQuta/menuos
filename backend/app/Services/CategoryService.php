@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Category;
 use App\Models\Restaurant;
+use App\Support\BilingualContent;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -13,6 +14,7 @@ class CategoryService
     public function create(Restaurant $restaurant, array $data): Category
     {
         return DB::transaction(function () use ($restaurant, $data): Category {
+            $data = BilingualContent::synchronize($data);
             $maxOrder = $restaurant->categories()->max('sort_order');
             $data['sort_order'] ??= $maxOrder === null ? 0 : ((int) $maxOrder) + 1;
 
@@ -22,6 +24,7 @@ class CategoryService
 
     public function update(Category $category, array $data): Category
     {
+        $data = BilingualContent::synchronize($data);
         $category->update($data);
 
         return $category->refresh();

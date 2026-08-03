@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Restaurant;
 use App\Models\User;
+use App\Support\BilingualContent;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,7 @@ class RestaurantService
     public function create(User $owner, array $data): Restaurant
     {
         return DB::transaction(function () use ($owner, $data): Restaurant {
+            $data = BilingualContent::synchronize($data, $data['default_language'] ?? 'ar');
             $data['owner_id'] = $owner->id;
             $data['slug'] = $this->uniqueSlug($data['name']);
 
@@ -25,6 +27,7 @@ class RestaurantService
     public function update(Restaurant $restaurant, array $data): Restaurant
     {
         return DB::transaction(function () use ($restaurant, $data): Restaurant {
+            $data = BilingualContent::synchronize($data, $data['default_language'] ?? $restaurant->default_language ?? 'ar');
             $restaurant->update($data);
 
             return $restaurant->refresh();

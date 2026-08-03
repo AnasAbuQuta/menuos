@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MenuItem;
 use App\Models\Restaurant;
+use App\Support\BilingualContent;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -17,12 +18,16 @@ class MenuItemService
     {
         return $restaurant->menuItems()->select('menu_items.*')
             ->join('categories', 'categories.id', '=', 'menu_items.category_id')
-            ->with('category:id,name')
+            ->with('category:id,name,name_ar,name_en')
             ->when($filters['category_id'] ?? null, fn ($query, $id) => $query->where('menu_items.category_id', $id))
             ->when($filters['search'] ?? null, function ($query, $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('menu_items.name', 'like', "%{$search}%")
-                        ->orWhere('menu_items.description', 'like', "%{$search}%");
+                        ->orWhere('menu_items.name_ar', 'like', "%{$search}%")
+                        ->orWhere('menu_items.name_en', 'like', "%{$search}%")
+                        ->orWhere('menu_items.description', 'like', "%{$search}%")
+                        ->orWhere('menu_items.description_ar', 'like', "%{$search}%")
+                        ->orWhere('menu_items.description_en', 'like', "%{$search}%");
                 });
             })
             ->when(array_key_exists('is_available', $filters), fn ($query) => $query->where('menu_items.is_available', $filters['is_available']))
@@ -34,6 +39,7 @@ class MenuItemService
     public function create(Restaurant $restaurant, array $data, ?UploadedFile $image): MenuItem
     {
         unset($data['image']);
+        $data = BilingualContent::synchronize($data);
         $data['price'] = $this->normalizePrice($data['price']);
         $maxOrder = $restaurant->menuItems()->where('category_id', $data['category_id'])->max('sort_order');
         $data['sort_order'] ??= $maxOrder === null ? 0 : ((int) $maxOrder) + 1;
@@ -55,6 +61,7 @@ class MenuItemService
     public function update(MenuItem $menuItem, array $data, ?UploadedFile $image): MenuItem
     {
         unset($data['image']);
+        $data = BilingualContent::synchronize($data);
         if (array_key_exists('price', $data)) {
             $data['price'] = $this->normalizePrice($data['price']);
         }
@@ -128,7 +135,7 @@ class MenuItemService
                     ->whereKey($menuItemId)->update(['sort_order' => $sortOrder]);
             }
 
-            return $restaurant->menuItems()->where('category_id', $categoryId)->ordered()->with('category:id,name')->get();
+            return $restaurant->menuItems()->where('category_id', $categoryId)->ordered()->with('category:id,name,name_ar,name_en')->get();
         });
     }
 

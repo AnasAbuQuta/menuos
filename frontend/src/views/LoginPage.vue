@@ -7,12 +7,15 @@ import BaseAlert from '../components/ui/BaseAlert.vue'
 import BaseButton from '../components/ui/BaseButton.vue'
 import BaseCard from '../components/ui/BaseCard.vue'
 import BaseInput from '../components/ui/BaseInput.vue'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
+import { useI18n } from 'vue-i18n'
 
 const auth = useAuthStore()
 const router = useRouter()
 const form = reactive({ email: '', password: '' })
 const error = ref('')
 const loading = ref(false)
+const { t } = useI18n()
 
 async function submit() {
   if (loading.value) return
@@ -22,7 +25,7 @@ async function submit() {
     await auth.login(form)
     await router.push({ name: auth.hasRestaurant ? 'dashboard' : 'restaurant-setup' })
   } catch (requestError) {
-    error.value = apiError(requestError, 'Unable to log in.')
+    error.value = apiError(requestError, t('auth.loginError'))
   } finally {
     loading.value = false
   }
@@ -31,14 +34,15 @@ async function submit() {
 
 <template>
   <main class="auth-page">
+    <LanguageSwitcher />
     <BaseCard>
       <form class="auth-card" @submit.prevent="submit">
-        <div><p class="eyebrow">MenuOS</p><h1>Welcome back</h1><p>Sign in to manage your restaurant.</p></div>
+        <div><p class="eyebrow">{{ $t('auth.brand') }}</p><h1>{{ $t('auth.welcome') }}</h1><p>{{ $t('auth.loginIntro') }}</p></div>
         <BaseAlert v-if="error" type="error">{{ error }}</BaseAlert>
-        <BaseInput v-model="form.email" label="Email" type="email" autocomplete="email" required autofocus />
-        <BaseInput v-model="form.password" label="Password" type="password" autocomplete="current-password" required />
-        <BaseButton type="submit" :loading="loading">Sign in</BaseButton>
-        <p class="form-footer">New to MenuOS? <RouterLink to="/register">Create an account</RouterLink></p>
+        <BaseInput v-model="form.email" :label="$t('auth.email')" type="email" autocomplete="email" required autofocus />
+        <BaseInput v-model="form.password" :label="$t('auth.password')" type="password" autocomplete="current-password" required />
+        <BaseButton type="submit" :loading="loading">{{ $t('auth.signIn') }}</BaseButton>
+        <p class="form-footer">{{ $t('auth.new') }} <RouterLink to="/register">{{ $t('auth.createAccount') }}</RouterLink></p>
       </form>
     </BaseCard>
   </main>

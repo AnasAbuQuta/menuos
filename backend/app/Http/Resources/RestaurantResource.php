@@ -13,8 +13,13 @@ class RestaurantResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_ar' => $this->name_ar,
+            'name_en' => $this->name_en,
             'slug' => $this->slug,
             'description' => $this->description,
+            'description_ar' => $this->description_ar,
+            'description_en' => $this->description_en,
+            'default_language' => $this->default_language,
             'logo_url' => $this->logo ? Storage::disk('public')->url($this->logo) : null,
             'cover_image_url' => $this->cover_image ? Storage::disk('public')->url($this->cover_image) : null,
             'whatsapp' => $this->whatsapp,

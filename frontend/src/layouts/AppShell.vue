@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import BaseButton from '../components/ui/BaseButton.vue'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -19,18 +20,18 @@ async function logout() {
     <header class="app-header">
       <div class="app-navigation">
         <RouterLink class="brand" to="/app/dashboard">MenuOS</RouterLink>
-        <button v-if="auth.hasRestaurant" class="mobile-nav-toggle" type="button" :aria-expanded="menuOpen" aria-controls="main-navigation" aria-label="Toggle navigation" @click="menuOpen = !menuOpen">☰</button>
-        <nav v-if="auth.hasRestaurant" id="main-navigation" :class="{ open: menuOpen }" aria-label="Main navigation" @click="menuOpen = false">
-          <RouterLink to="/app/dashboard">Dashboard</RouterLink>
-          <RouterLink to="/restaurant">Restaurant</RouterLink>
-          <RouterLink to="/categories">Categories</RouterLink>
-          <RouterLink to="/menu-items">Menu Items</RouterLink>
-          <RouterLink to="/qr-code">QR Code</RouterLink>
+        <button v-if="auth.hasRestaurant" class="mobile-nav-toggle" type="button" :aria-expanded="menuOpen" aria-controls="main-navigation" :aria-label="$t('nav.toggle')" @click="menuOpen = !menuOpen">☰</button>
+        <nav v-if="auth.hasRestaurant" id="main-navigation" :class="{ open: menuOpen }" :aria-label="$t('nav.toggle')" @click="menuOpen = false">
+          <RouterLink to="/app/dashboard">{{ $t('nav.dashboard') }}</RouterLink>
+          <RouterLink to="/restaurant">{{ $t('nav.restaurant') }}</RouterLink>
+          <RouterLink to="/categories">{{ $t('nav.categories') }}</RouterLink>
+          <RouterLink to="/menu-items">{{ $t('nav.menuItems') }}</RouterLink>
+          <RouterLink to="/qr-code">{{ $t('nav.qr') }}</RouterLink>
         </nav>
       </div>
       <div class="header-actions">
-        <span>{{ auth.user?.name }}</span>
-        <BaseButton variant="ghost" @click="logout">Log out</BaseButton>
+        <LanguageSwitcher /><span>{{ auth.user?.name }}</span>
+        <BaseButton variant="ghost" @click="logout">{{ $t('nav.logout') }}</BaseButton>
       </div>
     </header>
     <main class="app-content"><RouterView /></main>

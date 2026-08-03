@@ -114,3 +114,9 @@ WhatsApp ordering opens `wa.me` with an encoded Arabic summary containing unit p
 The Vue application uses a lightweight in-house design system for buttons, fields, cards, badges, alerts, skeleton loading, empty states, modals, confirmations, and accessible toast feedback. Authenticated routes and public-menu routes are lazy-loaded into separate production chunks to reduce initial JavaScript work.
 
 The owner dashboard summarizes restaurant status, setup completion, category and menu-item counts, and quick links without introducing analytics. The application includes dedicated not-found, unauthorized, and network-error experiences, keyboard focus trapping for modal dialogs, reduced-motion support, responsive owner navigation, touch-friendly controls, image fallbacks, and consistent mobile layouts.
+
+## Bilingual content and direction (Sprint 8A)
+
+Restaurant, category, and menu-item content can be stored independently in Arabic and English. At least one localized name is required; missing requested translations fall back to the other language and then to the legacy value. Existing records are backfilled into Arabic during migration. A restaurant's `default_language` controls public-menu responses when `?lang=ar` or `?lang=en` is omitted.
+
+The Vue interface uses Vue I18n, persists the selected interface language in `localStorage`, and updates the document `lang` and `dir` attributes for LTR/RTL layout. Public menus request localized content from `GET /api/v1/public/menu/{slug}?lang={ar|en}`. Legacy `name` and `description` response fields remain available during this compatibility phase; new integrations should use the bilingual fields on authenticated resources and the localized public response.

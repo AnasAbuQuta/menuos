@@ -13,7 +13,11 @@ class MenuItemResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_ar' => $this->name_ar,
+            'name_en' => $this->name_en,
             'description' => $this->description,
+            'description_ar' => $this->description_ar,
+            'description_en' => $this->description_en,
             'price' => $this->price,
             'image_url' => $this->image ? Storage::disk('public')->url($this->image) : null,
             'is_available' => $this->is_available,
@@ -22,6 +26,8 @@ class MenuItemResource extends JsonResource
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id,
                 'name' => $this->category->name,
+                'name_ar' => $this->category->name_ar,
+                'name_en' => $this->category->name_en,
             ]),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

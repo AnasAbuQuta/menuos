@@ -7,30 +7,36 @@ use Carbon\CarbonImmutable;
 
 class PublicMenuService
 {
-    public function findBySlug(string $slug): Restaurant
+    public function findBySlug(string $slug, ?string $language = null): Restaurant
     {
         $restaurant = Restaurant::query()
             ->select([
-                'id', 'name', 'slug', 'description', 'logo', 'cover_image',
+                'id', 'name', 'name_ar', 'name_en', 'slug', 'description', 'description_ar', 'description_en', 'default_language', 'logo', 'cover_image',
                 'whatsapp', 'phone', 'address', 'opening_hours', 'currency',
                 'primary_color', 'is_active',
             ])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->with(['categories' => function ($query): void {
-                $query->select(['id', 'restaurant_id', 'name', 'sort_order'])
+                $query->select(['id', 'restaurant_id', 'name', 'name_ar', 'name_en', 'sort_order'])
                     ->where('is_active', true)
                     ->whereHas('menuItems', fn ($query) => $query->where('is_available', true))
                     ->orderBy('sort_order')->orderBy('id')
                     ->with(['menuItems' => function ($query): void {
                         $query->select([
-                            'id', 'restaurant_id', 'category_id', 'name', 'description',
+                            'id', 'restaurant_id', 'category_id', 'name', 'name_ar', 'name_en', 'description', 'description_ar', 'description_en',
                             'price', 'image', 'is_featured', 'sort_order',
                         ])->where('is_available', true)->orderBy('sort_order')->orderBy('id');
                     }]);
             }])
             ->firstOrFail();
 
+        $language ??= $restaurant->default_language;
+        $restaurant->setAttribute('active_language', $language);
+        $restaurant->categories->each(function ($category) use ($language): void {
+            $category->setAttribute('active_language', $language);
+            $category->menuItems->each(fn ($item) => $item->setAttribute('active_language', $language));
+        });
         $restaurant->setAttribute('is_open_now', $this->isOpenNow($restaurant->opening_hours));
 
         return $restaurant;
