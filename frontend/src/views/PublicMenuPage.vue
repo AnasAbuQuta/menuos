@@ -94,7 +94,6 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="public-menu-page" :style="menuTheme">
-    <LanguageSwitcher @change="changeLanguage" />
     <section v-if="loading" class="public-menu-loading"><BaseLoading :rows="6" :label="$t('public.loading')" /></section>
     <section v-else-if="notFound" class="public-menu-state">
       <span class="public-menu-code">404</span><h1>{{ $t('public.notFound') }}</h1><p>{{ $t('public.notFoundHelp') }}</p>
@@ -105,6 +104,7 @@ onBeforeUnmount(() => {
 
     <template v-else-if="menu">
       <header class="public-menu-hero" :class="{ 'has-cover': menu.cover_image_url }" :style="menu.cover_image_url ? { backgroundImage: `linear-gradient(180deg, rgb(10 24 19 / 35%), rgb(10 24 19 / 82%)), url(${menu.cover_image_url})` } : {}">
+        <LanguageSwitcher @change="changeLanguage" />
         <div class="public-menu-hero-content">
           <img v-if="menu.logo_url" class="public-menu-logo" :src="menu.logo_url" :alt="`${menu.name} logo`" width="104" height="104">
           <span v-else class="public-menu-logo-placeholder" aria-hidden="true">{{ menu.name.charAt(0) }}</span>
@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
       </div>
       <footer class="public-menu-footer">{{ $t('public.powered') }}</footer>
       <button v-if="!cartOpen" class="public-cart-floating" type="button" :aria-label="$t('cart.open')" @click="cartOpen = true"><span>{{ $t('cart.title') }}</span><strong>{{ cart.totalQuantity }}</strong><span>{{ money(cart.totalPrice) }}</span></button>
-      <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" @close="cartOpen = false" @whatsapp="trackContact('whatsapp_click')" />
+      <PublicCartDrawer :open="cartOpen" :restaurant="menu" :format-money="money" :theme-style="menuTheme" @close="cartOpen = false" @whatsapp="trackContact('whatsapp_click')" />
     </template>
   </main>
 </template>
