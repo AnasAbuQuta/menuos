@@ -7,4 +7,8 @@ import './style.css'
 
 createApp(App).use(createPinia()).use(i18n).use(router).mount('#app')
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'))
+if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', async () => {
+  const registration = await navigator.serviceWorker.register('/sw.js')
+  await registration.update()
+  window.setInterval(() => registration.update(), 60 * 60 * 1000)
+})

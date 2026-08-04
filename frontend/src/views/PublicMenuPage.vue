@@ -69,7 +69,7 @@ async function loadMenu() {
     await nextTick()
     const canonical = `${window.location.origin}/menu/${encodeURIComponent(menu.value.slug)}`
     clearRestaurantSeo(originalTitle)
-    applyRestaurantSeo(menu.value, canonical)
+    applyRestaurantSeo(menu.value, canonical, menu.value.language)
     const source = trafficSource(String(route.query.source || ''))
     trackPublicEvent(menu.value.slug, 'menu_view', { source })
     if (source === 'qr') trackPublicEvent(menu.value.slug, 'qr_visit', { source: 'qr' })
@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <section class="public-menu-contact" aria-label="Restaurant details">
+      <section class="public-menu-contact" :aria-label="t('public.details')">
         <span v-if="menu.address">{{ menu.address }}</span>
         <a v-if="menu.phone" :href="`tel:${menu.phone}`" @click="trackContact('phone_click')">{{ $t('public.call', { phone: menu.phone }) }}</a>
         <a v-if="whatsappUrl" :href="whatsappUrl" target="_blank" rel="noopener noreferrer" @click="trackContact('whatsapp_click')">{{ $t('public.whatsapp') }}</a>
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
       <div class="public-menu-container">
         <label class="public-menu-search"><span class="sr-only">{{ $t('public.search') }}</span><input v-model="search" type="search" :placeholder="$t('public.search')"></label>
 
-        <nav v-if="menu.categories.length" class="public-menu-nav" aria-label="Menu categories">
+        <nav v-if="menu.categories.length" class="public-menu-nav" :aria-label="t('public.categories')">
           <button v-for="category in menu.categories" :key="category.id" @click="scrollToCategory(category.id)">{{ category.name }}</button>
         </nav>
 
