@@ -7,13 +7,16 @@ function meta(selector, attributes) {
   return element
 }
 
-export function applyRestaurantSeo(menu, canonicalUrl) {
-  const title = `${menu.name} · Menu`
-  const description = (menu.description || `View the menu, contact details, and opening hours for ${menu.name}.`).slice(0, 160)
+export function applyRestaurantSeo(menu, canonicalUrl, locale = 'en') {
+  const isArabic = locale === 'ar'
+  const title = `${menu.name} · ${isArabic ? 'القائمة' : 'Menu'}`
+  const description = (menu.description || (isArabic
+    ? `اعرض قائمة ${menu.name} ومعلومات التواصل وساعات العمل.`
+    : `View the menu, contact details, and opening hours for ${menu.name}.`)).slice(0, 160)
   const image = menu.cover_image_url || menu.logo_url || ''
   document.title = title
   meta('meta[name="description"]', { name: 'description', content: description })
-  meta('meta[name="keywords"]', { name: 'keywords', content: `${menu.name}, restaurant, menu, food` })
+  meta('meta[name="keywords"]', { name: 'keywords', content: isArabic ? `${menu.name}, مطعم, قائمة, طعام` : `${menu.name}, restaurant, menu, food` })
   meta('meta[property="og:title"]', { property: 'og:title', content: title })
   meta('meta[property="og:description"]', { property: 'og:description', content: description })
   meta('meta[property="og:type"]', { property: 'og:type', content: 'restaurant' })

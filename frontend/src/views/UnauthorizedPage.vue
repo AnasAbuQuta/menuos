@@ -1,2 +1,2 @@
 <script setup>import BaseButton from '../components/ui/BaseButton.vue'; import BaseEmptyState from '../components/ui/BaseEmptyState.vue'</script>
-<template><main class="route-state-page"><BaseEmptyState title="Access denied" message="You do not have permission to view this page."><RouterLink to="/dashboard"><BaseButton>Return to dashboard</BaseButton></RouterLink></BaseEmptyState></main></template>
+<template><main class="route-state-page branded-error-page"><span class="state-brand">MenuOS</span><BaseEmptyState title="Access denied" message="You do not have permission to view this page."><RouterLink to="/dashboard"><BaseButton>Return to dashboard</BaseButton></RouterLink></BaseEmptyState></main></template>

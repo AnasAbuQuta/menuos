@@ -1,0 +1,2 @@
+<script setup>import BaseButton from '../components/ui/BaseButton.vue'; import BaseEmptyState from '../components/ui/BaseEmptyState.vue'</script>
+<template><main class="route-state-page branded-error-page"><span class="state-brand">MenuOS</span><BaseEmptyState title="Something went wrong" message="The server could not complete this request. Your data is safe; please try again shortly."><RouterLink to="/"><BaseButton>Return home</BaseButton></RouterLink></BaseEmptyState></main></template>

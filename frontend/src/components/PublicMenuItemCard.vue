@@ -1,10 +1,13 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+import AppImage from './AppImage.vue'
+
 defineProps({
   item: { type: Object, required: true },
   formattedPrice: { type: String, required: true },
 })
 defineEmits(['add', 'view'])
-import AppImage from './AppImage.vue'
+const { t } = useI18n()
 </script>
 
 <template>
@@ -16,8 +19,8 @@ import AppImage from './AppImage.vue'
         <strong>{{ formattedPrice }}</strong>
       </div>
       <p v-if="item.description">{{ item.description }}</p>
-      <span v-if="item.is_featured" class="public-menu-featured">Featured</span>
-      <button class="public-menu-add" type="button" :aria-label="`Add ${item.name} to cart`" @click.stop="$emit('add', item)">Add to cart</button>
+      <span v-if="item.is_featured" class="public-menu-featured">{{ t('public.featured') }}</span>
+      <button class="public-menu-add" type="button" :aria-label="t('public.addItem', { name: item.name })" @click.stop="$emit('add', item)">{{ t('public.add') }}</button>
     </div>
   </article>
 </template>

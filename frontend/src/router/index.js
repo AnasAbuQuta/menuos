@@ -14,17 +14,20 @@ const QrCodePage = () => import('../views/QrCodePage.vue')
 const NotFoundPage = () => import('../views/NotFoundPage.vue')
 const UnauthorizedPage = () => import('../views/UnauthorizedPage.vue')
 const NetworkErrorPage = () => import('../views/NetworkErrorPage.vue')
+const LandingPage = () => import('../views/LandingPage.vue')
+const ServerErrorPage = () => import('../views/ServerErrorPage.vue')
 
 const router = createRouter({
   history: createWebHistory(),
   scrollBehavior: () => ({ top: 0 }),
   routes: [
     { path: '/menu/:slug', name: 'public-menu', component: PublicMenuPage },
-    { path: '/', redirect: '/dashboard' },
+    { path: '/', name: 'landing', component: LandingPage },
     { path: '/login', name: 'login', component: LoginPage, meta: { guest: true } },
     { path: '/register', name: 'register', component: RegisterPage, meta: { guest: true } },
     { path: '/unauthorized', name: 'unauthorized', component: UnauthorizedPage },
     { path: '/network-error', name: 'network-error', component: NetworkErrorPage },
+    { path: '/server-error', name: 'server-error', component: ServerErrorPage },
     { path: '/app', component: AppShell, meta: { requiresAuth: true }, children: [
       { path: 'restaurant/setup', name: 'restaurant-setup', component: RestaurantSetupPage },
       { path: 'dashboard', name: 'dashboard', component: DashboardPage },
