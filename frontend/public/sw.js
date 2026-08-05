@@ -1,5 +1,5 @@
-const CACHE = 'menuos-shell-v1.0.0'
-const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/favicon.svg', '/pwa-icon.svg']
+const CACHE = 'menuos-shell-v1.0.0-rc.1'
+const SHELL = ['/', '/offline.html', '/manifest.webmanifest', '/favicon.svg', '/pwa-icon.svg', '/icon-192.png', '/icon-512.png', '/icon-192-maskable.png', '/icon-512-maskable.png', '/apple-touch-icon.png']
 self.addEventListener('install', (event) => event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting())))
 self.addEventListener('activate', (event) => event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim())))
 self.addEventListener('fetch', (event) => { if (event.request.method !== 'GET' || new URL(event.request.url).pathname.startsWith('/api/')) return; if (event.request.mode === 'navigate') event.respondWith(fetch(event.request).catch(() => caches.match('/offline.html'))); else event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => { if (response.ok && response.type === 'basic') caches.open(CACHE).then((cache) => cache.put(event.request, response.clone())); return response }))) })

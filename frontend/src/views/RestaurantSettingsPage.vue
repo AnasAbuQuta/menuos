@@ -12,6 +12,7 @@ import PublicMenuPreview from '../components/PublicMenuPreview.vue'
 import CurrencySelect from '../components/CurrencySelect.vue'
 import ThemeSelector from '../components/ThemeSelector.vue'
 import { copyHours, setTwentyFourHours } from '../utils/openingHours'
+import { useLocalizedMeta } from '../composables/useLocalizedMeta'
 
 const days = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const auth = useAuthStore()
@@ -28,6 +29,7 @@ const coverField = ref(null)
 const form = reactive({ name_ar: '', name_en: '', description_ar: '', description_en: '', default_language: 'ar', is_active: true, whatsapp: '', phone: '', address: '', currency: 'ILS', theme_key: 'modern', primary_color: '', opening_hours: {} })
 const colorValid = computed(() => !form.primary_color || /^#[0-9A-Fa-f]{6}$/.test(form.primary_color))
 const { t } = useI18n()
+useLocalizedMeta('meta.restaurant')
 
 function defaultHours() {
   return Object.fromEntries(days.map((day) => [day, { is_open: day !== 'friday', open: day === 'friday' ? null : '09:00', close: day === 'friday' ? null : '23:00' }]))
@@ -47,15 +49,15 @@ function populate(data) {
 async function load() {
   loading.value = true; pageError.value = ''
   try { populate(await getRestaurant()) }
-  catch (error) { pageError.value = apiError(error, 'Unable to load restaurant settings.') }
+  catch (error) { pageError.value = apiError(error, t('restaurant.loadError')) }
   finally { loading.value = false }
 }
 
 async function save() {
   if (saving.value) return
   errors.value = {}
-  if (!form.name_ar.trim() && !form.name_en.trim()) { errors.value = { name_ar: [t('forms.itemRequired')] }; await focusFirstError(); return }
-  if (!colorValid.value) { errors.value = { primary_color: ['Use a six-digit hexadecimal color such as #E63946.'] }; await focusFirstError(); return }
+  if (!form.name_ar.trim() && !form.name_en.trim()) { errors.value = { name_ar: [t('setup.nameRequired')] }; await focusFirstError(); return }
+  if (!colorValid.value) { errors.value = { primary_color: [t('restaurant.colorInvalid')] }; await focusFirstError(); return }
   saving.value = true
   try {
     const payload = JSON.parse(JSON.stringify(form))
@@ -64,7 +66,7 @@ async function save() {
     payload.primary_color = payload.primary_color.toUpperCase()
     populate(await updateRestaurant(payload))
     toast.success(t('restaurant.saved'))
-  } catch (error) { errors.value = error.response?.data?.errors ?? { general: [apiError(error, 'Unable to save settings.')] }; await focusFirstError() }
+  } catch (error) { errors.value = error.response?.data?.errors ?? { general: [apiError(error, t('restaurant.saveError'))] }; await focusFirstError() }
   finally { saving.value = false }
 }
 
@@ -86,14 +88,14 @@ async function handleImage(type, file) {
     populate(updated)
     if (type === 'logo') logoField.value?.reset(); else coverField.value?.reset()
     toast.success(t(type === 'logo' ? 'restaurant.logoUpdated' : 'restaurant.coverUpdated'))
-  } catch (error) { pageError.value = apiError(error, `Unable to upload ${type}.`) }
+  } catch (error) { pageError.value = apiError(error, t('restaurant.uploadError', { type: t(`imageEditor.${type}`) })) }
   finally { imageBusy[type] = false }
 }
 
 async function removeImage(type) {
   imageBusy[type] = true; pageError.value = ''
   try { populate(type === 'logo' ? await deleteLogo() : await deleteCover()); toast.success(t('restaurant.imageRemoved')) }
-  catch (error) { pageError.value = apiError(error, `Unable to remove ${type}.`) }
+  catch (error) { pageError.value = apiError(error, t('restaurant.removeError', { type: t(`imageEditor.${type}`) })) }
   finally { imageBusy[type] = false }
 }
 
@@ -108,17 +110,17 @@ onMounted(load)
 <template>
   <section class="restaurant-settings-page">
     <div class="page-heading"><div><p class="eyebrow">{{ $t('restaurant.profile') }}</p><h1>{{ $t('restaurant.settings') }}</h1><p>{{ $t('restaurant.settingsIntro') }}</p></div><PublicMenuPreview :restaurant="restaurant" /></div>
-    <BaseLoading v-if="loading" :rows="6" label="Loading restaurant settings" />
-    <div v-else-if="pageError && !restaurant" class="error-state" role="alert"><p>{{ pageError }}</p><button class="button button-secondary" type="button" @click="load">Try again</button></div>
+    <BaseLoading v-if="loading" :rows="6" :label="t('restaurant.loading')" />
+    <div v-else-if="pageError && !restaurant" class="error-state" role="alert"><p>{{ pageError }}</p><button class="button button-secondary" type="button" @click="load">{{ t('common.retry') }}</button></div>
     <template v-else>
       <p v-if="pageError" class="error" role="alert">{{ pageError }}</p>
       <p v-if="errors.general" class="error" role="alert">{{ errors.general[0] }}</p>
       <form class="settings-form" @submit.prevent="save">
         <section class="card settings-section"><div><h2>{{ $t('restaurant.basic') }}</h2><p>{{ $t('restaurant.settingsIntro') }}</p></div><div class="settings-grid"><label>{{ $t('restaurant.nameAr') }}<input v-model="form.name_ar" maxlength="255" :disabled="saving"><span v-if="errorFor('name_ar')" class="field-error">{{ errorFor('name_ar') }}</span></label><label>{{ $t('restaurant.nameEn') }}<input v-model="form.name_en" maxlength="255" :disabled="saving"><span v-if="errorFor('name_en')" class="field-error">{{ errorFor('name_en') }}</span></label><label class="full">{{ $t('restaurant.descriptionAr') }}<textarea v-model="form.description_ar" rows="4" maxlength="5000" :disabled="saving" /></label><label class="full">{{ $t('restaurant.descriptionEn') }}<textarea v-model="form.description_en" rows="4" maxlength="5000" :disabled="saving" /></label><label>{{ $t('restaurant.defaultLanguage') }}<select v-model="form.default_language" :disabled="saving"><option value="ar">{{ $t('language.ar') }}</option><option value="en">{{ $t('language.en') }}</option></select></label><label class="checkbox-label setting-toggle"><input v-model="form.is_active" type="checkbox" :disabled="saving">{{ $t('common.active') }}</label></div></section>
-        <section class="card settings-section"><div><h2>Contact Information</h2><p>Country codes are preserved but never guessed automatically.</p></div><div class="settings-grid"><label>WhatsApp<input v-model="form.whatsapp" type="tel" maxlength="30" placeholder="+970591234567" :disabled="saving"><span v-if="errorFor('whatsapp')" class="field-error">{{ errorFor('whatsapp') }}</span></label><label>Phone<input v-model="form.phone" type="tel" maxlength="30" placeholder="0591234567" :disabled="saving"><span v-if="errorFor('phone')" class="field-error">{{ errorFor('phone') }}</span></label><label class="full">Address<textarea v-model="form.address" rows="3" maxlength="2000" :disabled="saving" /><span v-if="errorFor('address')" class="field-error">{{ errorFor('address') }}</span></label></div></section>
-        <section class="card settings-section"><div><h2>Brand Settings</h2><p>These values will be used by the future public menu.</p></div><div class="settings-grid"><CurrencySelect v-model="form.currency" :disabled="saving" /><ThemeSelector v-model="form.theme_key" v-model:primary-color="form.primary_color" :disabled="saving" /></div><div class="brand-images"><RestaurantImageField ref="logoField" label="Logo" profile="logo" guidance="A square image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.logo_url" :busy="imageBusy.logo" @upload="handleImage('logo', $event)" @remove="removeImage('logo')" /><RestaurantImageField ref="coverField" label="Cover" profile="cover" guidance="A wide landscape image is preferred. JPG, PNG, or WebP up to 2 MB." :current-url="restaurant?.cover_image_url" :busy="imageBusy.cover" @upload="handleImage('cover', $event)" @remove="removeImage('cover')" /></div></section>
-        <section class="card settings-section"><div><h2>Opening Hours</h2><p>Configure one daily shift. Overnight hours are not supported yet.</p></div><div class="hours-list"><div v-for="(day, index) in days" :key="day" class="hours-row"><strong>{{ day.charAt(0).toUpperCase() + day.slice(1) }}</strong><label class="checkbox-label"><input v-model="form.opening_hours[day].is_open" type="checkbox" :disabled="saving" @change="toggleDay(day)">Open</label><label>Opens<input v-model="form.opening_hours[day].open" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.open`)" class="field-error">{{ errorFor(`opening_hours.${day}.open`) }}</span></label><label>Closes<input v-model="form.opening_hours[day].close" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.close`)" class="field-error">{{ errorFor(`opening_hours.${day}.close`) }}</span></label><button type="button" class="text-button" :disabled="saving" @click="setTwentyFourHours(form.opening_hours[day])">24 hours</button><button v-if="index" type="button" class="text-button" :disabled="saving" @click="copyHours(form.opening_hours[days[index - 1]], form.opening_hours[day])">Copy previous</button><button type="button" class="text-button" :disabled="saving" @click="copyToAll(day)">Copy to all</button></div></div></section>
-        <BaseButton class="settings-save" type="submit" :loading="saving">Save settings</BaseButton>
+        <section class="card settings-section"><div><h2>{{ t('restaurant.contact') }}</h2><p>{{ t('restaurant.contactHelp') }}</p></div><div class="settings-grid"><label>WhatsApp<input v-model="form.whatsapp" type="tel" maxlength="30" placeholder="+970591234567" :disabled="saving"><span v-if="errorFor('whatsapp')" class="field-error">{{ errorFor('whatsapp') }}</span></label><label>{{ t('restaurant.phone') }}<input v-model="form.phone" type="tel" maxlength="30" placeholder="0591234567" :disabled="saving"><span v-if="errorFor('phone')" class="field-error">{{ errorFor('phone') }}</span></label><label class="full">{{ t('restaurant.address') }}<textarea v-model="form.address" rows="3" maxlength="2000" :disabled="saving" /><span v-if="errorFor('address')" class="field-error">{{ errorFor('address') }}</span></label></div></section>
+        <section class="card settings-section"><div><h2>{{ t('restaurant.brand') }}</h2><p>{{ t('restaurant.brandHelp') }}</p></div><div class="settings-grid"><CurrencySelect v-model="form.currency" :disabled="saving" /><ThemeSelector v-model="form.theme_key" v-model:primary-color="form.primary_color" :disabled="saving" /></div><div class="brand-images"><RestaurantImageField ref="logoField" :label="t('restaurant.logo')" profile="logo" :guidance="t('restaurant.logoGuidance')" :current-url="restaurant?.logo_url" :busy="imageBusy.logo" @upload="handleImage('logo', $event)" @remove="removeImage('logo')" /><RestaurantImageField ref="coverField" :label="t('restaurant.cover')" profile="cover" :guidance="t('restaurant.coverGuidance')" :current-url="restaurant?.cover_image_url" :busy="imageBusy.cover" @upload="handleImage('cover', $event)" @remove="removeImage('cover')" /></div></section>
+        <section class="card settings-section"><div><h2>{{ t('restaurant.hours') }}</h2><p>{{ t('restaurant.hoursHelp') }}</p></div><div class="hours-list"><div v-for="(day, index) in days" :key="day" class="hours-row"><strong>{{ t(`days.${day}`) }}</strong><label class="checkbox-label"><input v-model="form.opening_hours[day].is_open" type="checkbox" :disabled="saving" @change="toggleDay(day)">{{ t('restaurant.open') }}</label><label>{{ t('restaurant.opens') }}<input v-model="form.opening_hours[day].open" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.open`)" class="field-error">{{ errorFor(`opening_hours.${day}.open`) }}</span></label><label>{{ t('restaurant.closes') }}<input v-model="form.opening_hours[day].close" type="time" :disabled="saving || !form.opening_hours[day].is_open"><span v-if="errorFor(`opening_hours.${day}.close`)" class="field-error">{{ errorFor(`opening_hours.${day}.close`) }}</span></label><button type="button" class="text-button" :disabled="saving" @click="setTwentyFourHours(form.opening_hours[day])">{{ t('restaurant.open24') }}</button><button v-if="index" type="button" class="text-button" :disabled="saving" @click="copyHours(form.opening_hours[days[index - 1]], form.opening_hours[day])">{{ t('restaurant.copyPrevious') }}</button><button type="button" class="text-button" :disabled="saving" @click="copyToAll(day)">{{ t('restaurant.copyAll') }}</button></div></div></section>
+        <BaseButton class="settings-save" type="submit" :loading="saving">{{ t('restaurant.saveSettings') }}</BaseButton>
       </form>
     </template>
   </section>

@@ -27,6 +27,7 @@ const originalTitle = document.title
 const descriptionMeta = document.querySelector('meta[name="description"]')
 const originalDescription = descriptionMeta?.content || ''
 let searchTimer
+let appliedSeo = null
 const { t, locale } = useI18n()
 const requestedLanguage = computed(() => ['ar', 'en'].includes(route.query.lang) ? route.query.lang : locale.value)
 
@@ -68,8 +69,8 @@ async function loadMenu() {
     cart.initialize(menu.value.slug, menu.value.categories.flatMap((category) => category.menu_items))
     await nextTick()
     const canonical = `${window.location.origin}/menu/${encodeURIComponent(menu.value.slug)}`
-    clearRestaurantSeo(originalTitle)
-    applyRestaurantSeo(menu.value, canonical, menu.value.language)
+    clearRestaurantSeo(originalTitle, appliedSeo?.title)
+    appliedSeo = applyRestaurantSeo(menu.value, canonical, menu.value.language)
     const source = trafficSource(String(route.query.source || ''))
     trackPublicEvent(menu.value.slug, 'menu_view', { source })
     if (source === 'qr') trackPublicEvent(menu.value.slug, 'qr_visit', { source: 'qr' })
@@ -87,8 +88,8 @@ watch(search, (value) => { clearTimeout(searchTimer); if (value.trim()) searchTi
 onBeforeUnmount(() => {
   clearTimeout(searchTimer)
   void flushPublicEvents(menu.value?.slug)
-  clearRestaurantSeo(originalTitle)
-  if (descriptionMeta) descriptionMeta.content = originalDescription
+  clearRestaurantSeo(originalTitle, appliedSeo?.title)
+  if (descriptionMeta?.content === appliedSeo?.description) descriptionMeta.content = originalDescription
 })
 </script>
 

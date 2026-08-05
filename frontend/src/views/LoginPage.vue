@@ -9,6 +9,7 @@ import BaseCard from '../components/ui/BaseCard.vue'
 import BaseInput from '../components/ui/BaseInput.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import { useI18n } from 'vue-i18n'
+import { useLocalizedMeta } from '../composables/useLocalizedMeta'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -16,6 +17,7 @@ const form = reactive({ email: '', password: '' })
 const error = ref('')
 const loading = ref(false)
 const { t } = useI18n()
+useLocalizedMeta('meta.login')
 
 async function submit() {
   if (loading.value) return
