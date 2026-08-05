@@ -24,7 +24,13 @@ MenuOS migrations use Laravel's portable schema builder and are compatible with 
    php artisan migrate --force
    ```
 
-   If the selected plan does not provide pre-deploy commands, run the same command once from the Render Shell after the first deployment and before serving production traffic, then run it manually before each deployment containing migrations.
+   Free Render Web Services do not provide pre-deploy commands or Shell access. For a free service, set **Docker Command** to the following instead:
+
+   ```bash
+   php artisan migrate --force && exec /var/www/html/docker/start.sh
+   ```
+
+   The container entrypoint safely evaluates this Render-provided command, runs pending migrations, and then starts the normal production server. `migrate --force` is idempotent, so keeping this Docker Command for future deploys is safe.
 7. Leave **Docker Command** empty so Render uses the Dockerfile entrypoint.
 
 The entrypoint validates production configuration, prepares Laravel's writable directories, creates `public/storage` only when safe, caches configuration/routes/views, and starts Nginx with PHP-FPM. Nginx listens on `0.0.0.0:$PORT`; Render supplies `PORT` (normally `10000`).
