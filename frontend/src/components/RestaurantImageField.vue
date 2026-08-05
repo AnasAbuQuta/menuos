@@ -3,6 +3,7 @@ import { onBeforeUnmount, ref } from 'vue'
 import BaseConfirmDialog from './ui/BaseConfirmDialog.vue'
 import ImageEditorModal from './ImageEditorModal.vue'
 import { formatFileSize, validateImageFile } from '../utils/imageEditor'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -19,6 +20,7 @@ const error = ref('')
 const sourceFile = ref(null)
 const editorOpen = ref(false)
 const confirmingRemove = ref(false)
+const { t } = useI18n()
 
 function revokePreview() {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
@@ -33,7 +35,7 @@ function selectFile(event) {
   if (!selected) return
   const validationError = validateImageFile(selected)
   if (validationError) {
-    error.value = validationError
+    error.value = t(`forms.${validationError}`)
     event.target.value = ''
     return
   }
@@ -74,18 +76,18 @@ onBeforeUnmount(revokePreview)
   <div class="brand-image-field">
     <div><h3>{{ label }}</h3><p>{{ guidance }}</p></div>
     <div class="brand-image-preview">
-      <img v-if="previewUrl || currentUrl" :src="previewUrl || currentUrl" :alt="`Restaurant ${label.toLowerCase()} preview`" loading="lazy">
-      <span v-else>No {{ label.toLowerCase() }} uploaded</span>
+      <img v-if="previewUrl || currentUrl" :src="previewUrl || currentUrl" :alt="t('imageEditor.preview', { type: label })" loading="lazy">
+      <span v-else>{{ t('imageEditor.missing', { type: label }) }}</span>
     </div>
-    <label>Choose image<input type="file" accept="image/jpeg,image/png,image/webp" :disabled="busy" @change="selectFile"></label>
+    <label>{{ t('imageEditor.choose') }}<input type="file" accept="image/jpeg,image/png,image/webp" :disabled="busy" @change="selectFile"></label>
     <p v-if="error" class="field-error" role="alert">{{ error }}</p>
-    <p v-if="file" class="image-ready">Ready to upload · {{ formatFileSize(file.size) }}</p>
-    <div v-if="busy" class="upload-progress" :class="{ indeterminate: progress === 0 }" role="progressbar" aria-label="Image upload progress" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"><span :style="{ width: `${progress}%` }"></span></div>
+    <p v-if="file" class="image-ready">{{ t('imageEditor.ready', { size: formatFileSize(file.size) }) }}</p>
+    <div v-if="busy" class="upload-progress" :class="{ indeterminate: progress === 0 }" role="progressbar" :aria-label="t('imageEditor.progress')" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"><span :style="{ width: `${progress}%` }"></span></div>
     <div class="form-actions">
-      <button class="button" type="button" :disabled="busy || !file" @click="upload">{{ busy ? 'Uploading…' : previewUrl ? `Upload ${label}` : `Choose ${label}` }}</button>
-      <button v-if="currentUrl" class="button button-danger" type="button" :disabled="busy" @click="remove">Remove</button>
+      <button class="button" type="button" :disabled="busy || !file" @click="upload">{{ busy ? t('imageEditor.uploading') : previewUrl ? t('imageEditor.upload', { type: label }) : t('imageEditor.chooseType', { type: label }) }}</button>
+      <button v-if="currentUrl" class="button button-danger" type="button" :disabled="busy" @click="remove">{{ t('common.remove') }}</button>
     </div>
-    <BaseConfirmDialog :open="confirmingRemove" :title="`Remove ${label}?`" :message="`Remove the restaurant ${label.toLowerCase()}?`" confirm-label="Remove image" danger :loading="busy" @confirm="confirmingRemove = false; emit('remove')" @cancel="confirmingRemove = false" />
+    <BaseConfirmDialog :open="confirmingRemove" :title="t('imageEditor.removeTitle', { type: label })" :message="t('imageEditor.removeMessage', { type: label })" :confirm-label="t('imageEditor.remove')" danger :loading="busy" @confirm="confirmingRemove = false; emit('remove')" @cancel="confirmingRemove = false" />
     <ImageEditorModal :open="editorOpen" :file="sourceFile" :profile="profile" @confirm="acceptEditedImage" @close="editorOpen = false; sourceFile = null" />
   </div>
 </template>

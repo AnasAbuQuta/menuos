@@ -13,8 +13,10 @@ import { apiError } from '../services/api'
 import { createCategory, deleteCategory, listCategories, reorderCategories, updateCategory } from '../services/categories'
 import { useToastStore } from '../stores/toast'
 import { filterCategories, localizedValue, optimisticFieldUpdate, reorderByIds, secondaryLocalizedValue } from '../utils/management'
+import { useLocalizedMeta } from '../composables/useLocalizedMeta'
 
 const { t, locale } = useI18n()
+useLocalizedMeta('meta.categories')
 const toast = useToastStore()
 const categories = ref([])
 const search = ref('')

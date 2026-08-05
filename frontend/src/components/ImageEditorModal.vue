@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import BaseModal from './ui/BaseModal.vue'
 import { IMAGE_PROFILES, processCroppedCanvas } from '../utils/imageEditor'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({ open: Boolean, file: { type: File, default: null }, profile: { type: String, default: 'menuItem' } })
 const emit = defineEmits(['close', 'confirm'])
@@ -11,6 +12,7 @@ const busy = ref(false)
 const error = ref('')
 const activeRatio = ref(1)
 let cropper
+const { t } = useI18n()
 
 function cleanup() {
   cropper?.destroy()
@@ -37,7 +39,7 @@ async function initialize() {
     cropperImage?.$center('contain')
     selection()?.$reset()
     selection()?.$center()
-  } catch { error.value = 'The image editor could not be loaded. Please try again.' }
+  } catch { error.value = t('imageEditor.loadError') }
 }
 
 function image() { return cropper?.getCropperImage() }
@@ -53,7 +55,7 @@ async function confirm() {
   try {
     const canvas = await selection().$toCanvas()
     emit('confirm', await processCroppedCanvas(canvas, props.file, IMAGE_PROFILES[props.profile]))
-  } catch (exception) { error.value = exception.message || 'Could not process this image.' }
+  } catch (exception) { error.value = t(`imageEditor.${['processError', 'processedTooLarge'].includes(exception.message) ? exception.message : 'error'}`) }
   finally { busy.value = false }
 }
 
@@ -62,14 +64,14 @@ onBeforeUnmount(cleanup)
 </script>
 
 <template>
-  <BaseModal :open="open" :title="`Edit ${IMAGE_PROFILES[profile].label}`" :closeable="!busy" @close="emit('close')">
+  <BaseModal :open="open" :title="t('imageEditor.edit', { type: t(`imageEditor.${profile}`) })" :closeable="!busy" @close="emit('close')">
     <div class="image-editor">
-      <div ref="host" class="image-editor-stage"><img v-if="source" :src="source" alt="Image being edited"></div>
+      <div ref="host" class="image-editor-stage"><img v-if="source" :src="source" :alt="t('imageEditor.imageAlt')"></div>
       <p v-if="error" class="field-error" role="alert">{{ error }}</p>
-      <div class="image-editor-ratios" aria-label="Crop shape"><button v-for="ratio in IMAGE_PROFILES[profile].ratios" :key="ratio.label" type="button" :class="{ active: activeRatio === ratio.value }" @click="setRatio(ratio.value)">{{ ratio.label }}</button></div>
-      <div class="image-editor-tools"><button type="button" @click="zoom(-0.1)">− Zoom</button><button type="button" @click="zoom(0.1)">+ Zoom</button><button type="button" @click="rotate(-90)">↶ Rotate</button><button type="button" @click="rotate(90)">↷ Rotate</button><button type="button" @click="reset">Reset</button></div>
-      <p class="image-editor-hint">Drag the image and resize the crop area. The result is optimized before upload.</p>
+      <div class="image-editor-ratios" :aria-label="t('imageEditor.cropShape')"><button v-for="ratio in IMAGE_PROFILES[profile].ratios" :key="ratio.labelKey" type="button" :class="{ active: activeRatio === ratio.value }" @click="setRatio(ratio.value)">{{ ratio.labelKey === 'square' ? t('imageEditor.square') : ratio.labelKey }}</button></div>
+      <div class="image-editor-tools"><button type="button" :aria-label="t('imageEditor.zoomOut')" @click="zoom(-0.1)">− {{ t('imageEditor.zoomOut') }}</button><button type="button" :aria-label="t('imageEditor.zoomIn')" @click="zoom(0.1)">+ {{ t('imageEditor.zoomIn') }}</button><button type="button" :aria-label="t('imageEditor.rotateLeft')" @click="rotate(-90)">↶ {{ t('imageEditor.rotateLeft') }}</button><button type="button" :aria-label="t('imageEditor.rotateRight')" @click="rotate(90)">↷ {{ t('imageEditor.rotateRight') }}</button><button type="button" @click="reset">{{ t('imageEditor.reset') }}</button></div>
+      <p class="image-editor-hint">{{ t('imageEditor.hint') }}</p>
     </div>
-    <template #actions><button class="button button-secondary" type="button" :disabled="busy" @click="emit('close')">Cancel</button><button class="button" type="button" :disabled="busy || !source" @click="confirm">{{ busy ? 'Processing…' : 'Use image' }}</button></template>
+    <template #actions><button class="button button-secondary" type="button" :disabled="busy" @click="emit('close')">{{ t('common.cancel') }}</button><button class="button" type="button" :disabled="busy || !source" @click="confirm">{{ busy ? t('imageEditor.processing') : t('imageEditor.use') }}</button></template>
   </BaseModal>
 </template>

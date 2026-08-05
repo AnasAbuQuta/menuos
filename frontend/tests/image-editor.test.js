@@ -12,7 +12,8 @@ test('image profiles enforce requested crop ratios and maximum dimensions', () =
 
 test('image validation and readable sizes use the upload contract', () => {
   assert.equal(validateImageFile({ type: 'image/webp', size: 1000 }), '')
-  assert.match(validateImageFile({ type: 'image/gif', size: 1000 }), /JPG/)
+  assert.equal(validateImageFile({ type: 'image/gif', size: 1000 }), 'imageType')
+  assert.equal(validateImageFile({ type: 'image/webp', size: 2 * 1024 * 1024 + 1 }), 'imageSize')
   assert.equal(formatFileSize(1024), '1 KB')
 })
 

@@ -14,8 +14,10 @@ import { listCategories } from '../services/categories'
 import { createMenuItem, deleteMenuItem, listMenuItems, reorderMenuItems, updateMenuItem } from '../services/menuItems'
 import { useToastStore } from '../stores/toast'
 import { localizedValue, optimisticFieldUpdate, secondaryLocalizedValue } from '../utils/management'
+import { useLocalizedMeta } from '../composables/useLocalizedMeta'
 
 const { t, locale } = useI18n()
+useLocalizedMeta('meta.items')
 const toast = useToastStore()
 const items = ref([])
 const categories = ref([])

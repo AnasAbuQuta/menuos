@@ -1,1 +1,36 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#176b52"><title>MenuOS · Offline</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f8f6;color:#10231d;font:16px system-ui}.card{max-width:420px;margin:24px;padding:32px;border:1px solid #dce4e1;border-radius:20px;background:#fff;text-align:center;box-shadow:0 18px 48px #10231d1a}h1{margin:.4rem 0}button{padding:.75rem 1rem;border:0;border-radius:10px;background:#176b52;color:#fff;font-weight:700}</style></head><body><main class="card"><strong>MenuOS</strong><h1>You’re offline</h1><p>Reconnect to load the latest restaurant menu and analytics.</p><button onclick="location.reload()">Try again</button></main></body></html>
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#176b52">
+    <title id="page-title">MenuOS · Offline</title>
+    <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f5f8f6;color:#10231d;font:16px system-ui}.card{max-width:420px;margin:24px;padding:32px;border:1px solid #dce4e1;border-radius:20px;background:#fff;text-align:center;box-shadow:0 18px 48px #10231d1a}h1{margin:.4rem 0}.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}button,a{padding:.75rem 1rem;border:0;border-radius:10px;background:#176b52;color:#fff;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}a{background:#e9f2ef;color:#124d3c}</style>
+  </head>
+  <body>
+    <main class="card">
+      <strong>MenuOS</strong>
+      <h1 id="offline-title"></h1>
+      <p id="offline-message"></p>
+      <div class="actions"><button id="retry" type="button"></button><a id="home" href="/"></a></div>
+    </main>
+    <script>
+      (() => {
+        const messages = {
+          ar: { title: 'أنت غير متصل بالإنترنت', message: 'الاتصال غير متاح. أعد الاتصال لتحميل أحدث قائمة مطعم وتحليلات.', retry: 'حاول مجدداً', home: 'العودة إلى الرئيسية', pageTitle: 'MenuOS · غير متصل' },
+          en: { title: 'You are offline', message: 'Connection is unavailable. Reconnect to load the latest restaurant menu and analytics.', retry: 'Try again', home: 'Return home', pageTitle: 'MenuOS · Offline' },
+        }
+        const locale = localStorage.getItem('menuos_locale') === 'ar' ? 'ar' : 'en'
+        const text = messages[locale]
+        document.documentElement.lang = locale
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr'
+        document.title = text.pageTitle
+        document.getElementById('offline-title').textContent = text.title
+        document.getElementById('offline-message').textContent = text.message
+        document.getElementById('retry').textContent = text.retry
+        document.getElementById('home').textContent = text.home
+        document.getElementById('retry').addEventListener('click', () => location.reload())
+      })()
+    </script>
+  </body>
+</html>

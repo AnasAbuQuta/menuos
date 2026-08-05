@@ -69,6 +69,7 @@ Start with these launch documents:
 - [Backup strategy](BACKUP.md)
 - [Restore procedure](RESTORE.md)
 - [Monitoring recommendations](MONITORING.md)
+- [Localization terminology and guard](LOCALIZATION.md)
 
 Production hosting must use HTTPS, serve the Vue application with SPA fallback, persist public uploads or use object storage, supervise queue workers, and proxy the frontend `/sitemap.xml` path to Laravel's dynamic sitemap endpoint.
 

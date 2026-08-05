@@ -31,9 +31,10 @@ export function applyRestaurantSeo(menu, canonicalUrl, locale = 'en') {
   canonical.href = canonicalUrl
   const schema = document.createElement('script'); schema.type = 'application/ld+json'; schema.dataset.menuosSeo = 'true'; schema.textContent = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Restaurant', name: menu.name, description, url: canonicalUrl, image: [menu.logo_url, menu.cover_image_url].filter(Boolean), telephone: menu.phone || undefined, address: menu.address || undefined, currenciesAccepted: menu.currency })
   document.head.appendChild(schema); managed.push(schema)
+  return { title, description }
 }
 
-export function clearRestaurantSeo(originalTitle = 'MenuOS') {
-  document.title = originalTitle
+export function clearRestaurantSeo(originalTitle = 'MenuOS', expectedTitle = '') {
+  if (!expectedTitle || document.title === expectedTitle) document.title = originalTitle
   managed.splice(0).forEach((element) => element.remove())
 }
