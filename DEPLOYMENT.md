@@ -16,24 +16,12 @@ MenuOS migrations use Laravel's portable schema builder and are compatible with 
 1. Choose **New > Web Service**, connect the MenuOS GitHub repository, and select the deployment branch (normally `main` after this feature branch is reviewed and merged).
 2. Set **Root Directory** to `backend`.
 3. Select the **Docker** runtime. The Dockerfile path is `Dockerfile`, relative to the backend root.
-4. Choose a paid instance if you want to use Render's pre-deploy command.
+4. Choose the instance type that fits the environment. The free plan is supported without Shell or pre-deploy commands.
 5. Set **Health Check Path** to `/up`.
-6. Set **Pre-Deploy Command** to:
+6. Leave **Pre-Deploy Command** empty. The production entrypoint runs `php artisan migrate --force` before starting the web server.
+7. Leave **Docker Command** empty so Render uses the Dockerfile entrypoint. Do not place shell operators such as `&&` in this field.
 
-   ```bash
-   php artisan migrate --force
-   ```
-
-   Free Render Web Services do not provide pre-deploy commands or Shell access. For a free service, set **Docker Command** to the following instead:
-
-   ```bash
-   php artisan migrate --force && exec /var/www/html/docker/start.sh
-   ```
-
-   The container entrypoint safely evaluates this Render-provided command, runs pending migrations, and then starts the normal production server. `migrate --force` is idempotent, so keeping this Docker Command for future deploys is safe.
-7. Leave **Docker Command** empty so Render uses the Dockerfile entrypoint.
-
-The entrypoint validates production configuration, prepares Laravel's writable directories, creates `public/storage` only when safe, caches configuration/routes/views, and starts Nginx with PHP-FPM. Nginx listens on `0.0.0.0:$PORT`; Render supplies `PORT` (normally `10000`).
+The entrypoint validates production configuration, prepares Laravel's writable directories, runs pending migrations, optionally refreshes the demo restaurant, creates `public/storage` only when safe, caches configuration/routes/views, and starts Nginx with PHP-FPM. Nginx listens on `0.0.0.0:$PORT`; Render supplies `PORT` (normally `10000`).
 
 ### Backend environment variables
 
@@ -59,6 +47,7 @@ Set these in the backend Web Service's **Environment** page:
 | `QUEUE_CONNECTION` | `database` |
 | `FILESYSTEM_DISK` | `public` when using the persistent disk described below |
 | `SANCTUM_TOKEN_EXPIRATION` | `10080` (or your chosen token lifetime in minutes) |
+| `SEED_DEMO_RESTAURANT` | `true` to keep the Bella Pasta public demo and its bundled images available; otherwise `false` |
 
 `DB_URL` supplies all PostgreSQL connection fields, so do not also set stale `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, or `DB_PASSWORD` values. Never paste secrets into `.env.production.example` or commit a real `.env` file.
 

@@ -1,12 +1,12 @@
 #!/bin/sh
 set -eu
 
-if [ "$#" -eq 1 ]; then
-    exec /bin/sh -c "$1"
-fi
-
 if [ "$#" -gt 1 ]; then
     exec "$@"
+fi
+
+if [ "$#" -eq 1 ]; then
+    exec "$1"
 fi
 
 PORT="${PORT:-10000}"
@@ -40,6 +40,12 @@ mkdir -p \
 
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R ug+rwX storage bootstrap/cache
+
+php artisan migrate --force
+
+if [ "${SEED_DEMO_RESTAURANT:-false}" = "true" ]; then
+    php artisan db:seed --force
+fi
 
 if [ ! -L public/storage ]; then
     if [ -e public/storage ]; then
