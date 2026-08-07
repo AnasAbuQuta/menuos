@@ -9,5 +9,9 @@ export function setTwentyFourHours(hours) {
 }
 
 export function copyHours(source, target) {
-  Object.assign(target, structuredClone(source))
+  Object.assign(target, {
+    is_open: Boolean(source.is_open),
+    open: source.open ?? null,
+    close: source.close ?? null,
+  })
 }
