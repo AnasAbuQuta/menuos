@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import BaseButton from '../components/ui/BaseButton.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import PwaInstallPrompt from '../components/PwaInstallPrompt.vue'
+import { prefetchRouteComponent } from '../utils/routePrefetch'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -15,7 +16,7 @@ async function logout() {
   await router.push({ name: 'login' })
 }
 function keyboardShortcuts(event) { if (!event.altKey || event.ctrlKey || event.metaKey) return; const route = ({ m: 'menu-items', c: 'categories', s: 'restaurant-settings', d: 'dashboard' })[event.key.toLowerCase()]; if (route) { event.preventDefault(); router.push({ name: route }) } }
-function prefetch(routeName) { router.resolve({ name: routeName }).matched.at(-1)?.components?.default?.() }
+function prefetch(routeName) { void prefetchRouteComponent(router, routeName) }
 onMounted(() => window.addEventListener('keydown', keyboardShortcuts))
 onBeforeUnmount(() => window.removeEventListener('keydown', keyboardShortcuts))
 </script>
