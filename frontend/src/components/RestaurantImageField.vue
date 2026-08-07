@@ -73,7 +73,7 @@ onBeforeUnmount(revokePreview)
 </script>
 
 <template>
-  <div class="brand-image-field">
+  <div class="brand-image-field" :class="`brand-image-field-${profile}`">
     <div><h3>{{ label }}</h3><p>{{ guidance }}</p></div>
     <div class="brand-image-preview">
       <img v-if="previewUrl || currentUrl" :src="previewUrl || currentUrl" :alt="t('imageEditor.preview', { type: label })" loading="lazy">
