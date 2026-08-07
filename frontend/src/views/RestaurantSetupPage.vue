@@ -12,6 +12,7 @@ import ThemeSelector from '../components/ThemeSelector.vue'
 import ImageEditorModal from '../components/ImageEditorModal.vue'
 import { validateImageFile } from '../utils/imageEditor'
 import { DAYS, copyHours, defaultOpeningHours, setTwentyFourHours } from '../utils/openingHours'
+import { clonePlainData } from '../utils/plainData'
 import { useLocalizedMeta } from '../composables/useLocalizedMeta'
 
 const auth = useAuthStore()
@@ -74,7 +75,7 @@ async function submit() {
   if (loading.value || !validateStep()) return
   loading.value = true; error.value = ''
   try {
-    const payload = structuredClone(form)
+    const payload = clonePlainData(form)
     if (!payload.primary_color) payload.primary_color = null
     if (!auth.hasRestaurant) await auth.createRestaurant(payload)
     try {
