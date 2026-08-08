@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
   const initialized = ref(false)
   const isAuthenticated = computed(() => Boolean(token.value && user.value))
   const hasRestaurant = computed(() => Boolean(user.value?.restaurant))
+  const isSuperAdmin = computed(() => Boolean(user.value?.is_super_admin))
 
   function setSession(data) {
     token.value = data.token
@@ -60,7 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    user, initialized, isAuthenticated, hasRestaurant,
+    user, initialized, isAuthenticated, hasRestaurant, isSuperAdmin,
     register, login, restore, logout, createRestaurant,
   }
 })

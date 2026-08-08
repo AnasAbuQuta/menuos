@@ -32,6 +32,12 @@ class AuthService
             ]);
         }
 
+        if (! $user->isActive()) {
+            throw ValidationException::withMessages([
+                'email' => ['This account is disabled.'],
+            ]);
+        }
+
         return [$user, $user->createToken('menuos-web')->plainTextToken];
     }
 }

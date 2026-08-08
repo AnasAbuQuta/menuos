@@ -47,6 +47,10 @@ if [ "${SEED_DEMO_RESTAURANT:-false}" = "true" ]; then
     php artisan db:seed --force
 fi
 
+if [ -n "${MENUOS_BOOTSTRAP_SUPER_ADMIN_EMAIL:-}" ]; then
+    php artisan menuos:make-super-admin "$MENUOS_BOOTSTRAP_SUPER_ADMIN_EMAIL" --force
+fi
+
 if [ ! -L public/storage ]; then
     if [ -e public/storage ]; then
         echo "public/storage exists but is not a symbolic link; refusing to overwrite it." >&2

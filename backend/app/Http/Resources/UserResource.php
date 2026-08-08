@@ -13,11 +13,14 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'account_status' => $this->account_status,
+            'is_super_admin' => $this->isSuperAdmin(),
             'restaurant' => $this->whenLoaded(
                 'restaurant',
                 fn () => $this->restaurant ? new RestaurantResource($this->restaurant) : null,
             ),
             'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

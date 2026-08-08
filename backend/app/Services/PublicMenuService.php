@@ -17,6 +17,7 @@ class PublicMenuService
             ])
             ->where('slug', $slug)
             ->where('is_active', true)
+            ->where('platform_status', 'active')
             ->with(['categories' => function ($query): void {
                 $query->select(['id', 'restaurant_id', 'name', 'name_ar', 'name_en', 'sort_order'])
                     ->where('is_active', true)

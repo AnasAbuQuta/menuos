@@ -15,7 +15,7 @@ class AnalyticsController extends Controller
 
     public function store(StoreAnalyticsEventsRequest $request, string $slug): JsonResponse
     {
-        $restaurant = Restaurant::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $restaurant = Restaurant::query()->where('slug', $slug)->where('is_active', true)->where('platform_status', 'active')->firstOrFail();
         $this->analyticsService->record($restaurant, $request->validated('visitor_id'), $request->validated('events'));
 
         return response()->json(['message' => 'Analytics events accepted.'], 202)->header('Cache-Control', 'no-store');

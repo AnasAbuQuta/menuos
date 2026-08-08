@@ -19,9 +19,24 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $attributes = [
+        'is_super_admin' => false,
+        'account_status' => 'active',
+    ];
+
     public function restaurant(): HasOne
     {
         return $this->hasOne(Restaurant::class, 'owner_id');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->account_status === 'active';
     }
 
     /**
@@ -34,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 }

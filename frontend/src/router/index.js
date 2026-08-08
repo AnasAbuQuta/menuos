@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { resolveAdminAccess } from './adminGuard'
 
 const AppShell = () => import('../layouts/AppShell.vue')
 const LoginPage = () => import('../views/LoginPage.vue')
@@ -16,6 +17,12 @@ const UnauthorizedPage = () => import('../views/UnauthorizedPage.vue')
 const NetworkErrorPage = () => import('../views/NetworkErrorPage.vue')
 const LandingPage = () => import('../views/LandingPage.vue')
 const ServerErrorPage = () => import('../views/ServerErrorPage.vue')
+const AdminLayout = () => import('../layouts/AdminLayout.vue')
+const AdminDashboardPage = () => import('../views/admin/AdminDashboardPage.vue')
+const AdminUsersPage = () => import('../views/admin/AdminUsersPage.vue')
+const AdminUserDetailPage = () => import('../views/admin/AdminUserDetailPage.vue')
+const AdminRestaurantsPage = () => import('../views/admin/AdminRestaurantsPage.vue')
+const AdminRestaurantDetailPage = () => import('../views/admin/AdminRestaurantDetailPage.vue')
 
 const router = createRouter({
   history: createWebHistory(),
@@ -28,6 +35,13 @@ const router = createRouter({
     { path: '/unauthorized', name: 'unauthorized', component: UnauthorizedPage },
     { path: '/network-error', name: 'network-error', component: NetworkErrorPage },
     { path: '/server-error', name: 'server-error', component: ServerErrorPage },
+    { path: '/admin', component: AdminLayout, meta: { requiresAuth: true, requiresAdmin: true }, children: [
+      { path: '', name: 'admin-dashboard', component: AdminDashboardPage },
+      { path: 'users', name: 'admin-users', component: AdminUsersPage },
+      { path: 'users/:id', name: 'admin-user-detail', component: AdminUserDetailPage },
+      { path: 'restaurants', name: 'admin-restaurants', component: AdminRestaurantsPage },
+      { path: 'restaurants/:id', name: 'admin-restaurant-detail', component: AdminRestaurantDetailPage },
+    ] },
     { path: '/app', component: AppShell, meta: { requiresAuth: true }, children: [
       { path: 'restaurant/setup', name: 'restaurant-setup', component: RestaurantSetupPage },
       { path: 'dashboard', name: 'dashboard', component: DashboardPage },
@@ -44,10 +58,11 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   await auth.restore()
-  if (to.meta.requiresAuth && !auth.isAuthenticated) return { name: 'login', query: { redirect: to.fullPath } }
-  if (to.meta.guest && auth.isAuthenticated) return { name: auth.hasRestaurant ? 'dashboard' : 'restaurant-setup' }
-  if (to.meta.requiresAuth && auth.isAuthenticated && !auth.hasRestaurant && to.name !== 'restaurant-setup') return { name: 'restaurant-setup' }
-  if (to.name === 'restaurant-setup' && auth.hasRestaurant) return { name: 'dashboard' }
+  const adminAccess = resolveAdminAccess(to, auth)
+  if (adminAccess) return adminAccess
+  if (to.meta.guest && auth.isAuthenticated) return { name: auth.isSuperAdmin ? 'admin-dashboard' : auth.hasRestaurant ? 'dashboard' : 'restaurant-setup' }
+  if (to.meta.requiresAuth && !to.meta.requiresAdmin && auth.isAuthenticated && !auth.hasRestaurant && to.name !== 'restaurant-setup') return { name: 'restaurant-setup' }
+  if (to.name === 'restaurant-setup' && auth.hasRestaurant) return { name: auth.isSuperAdmin ? 'admin-dashboard' : 'dashboard' }
 })
 
 export default router

@@ -48,8 +48,11 @@ Set these in the backend Web Service's **Environment** page:
 | `FILESYSTEM_DISK` | `public` when using the persistent disk described below |
 | `SANCTUM_TOKEN_EXPIRATION` | `10080` (or your chosen token lifetime in minutes) |
 | `SEED_DEMO_RESTAURANT` | `true` to keep the Bella Pasta public demo and its bundled images available; otherwise `false` |
+| `MENUOS_BOOTSTRAP_SUPER_ADMIN_EMAIL` | Leave unset normally. Temporarily set to an existing user's email for one deploy when bootstrapping the first Super Admin without Render Shell, then delete it and redeploy. |
 
 `DB_URL` supplies all PostgreSQL connection fields, so do not also set stale `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, or `DB_PASSWORD` values. Never paste secrets into `.env.production.example` or commit a real `.env` file.
+
+For the exact first-admin bootstrap and recovery workflow, see [ADMIN.md](ADMIN.md). Keep Render's Docker Command empty; the container entrypoint performs the optional promotion without shell command overrides.
 
 ### Persistent uploads
 

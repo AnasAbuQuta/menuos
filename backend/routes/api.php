@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\AdminRestaurantController;
+use App\Http\Controllers\Api\V1\Admin\AdminUserController;
 use App\Http\Controllers\Api\V1\AnalyticsController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
@@ -20,13 +23,23 @@ Route::prefix('v1')->group(function (): void {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
 
-        Route::middleware('auth:sanctum')->group(function (): void {
+        Route::middleware(['auth:sanctum', 'account.active'])->group(function (): void {
             Route::post('logout', [AuthController::class, 'logout']);
             Route::get('me', [AuthController::class, 'me']);
         });
     });
 
-    Route::middleware('auth:sanctum')->prefix('restaurant')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'account.active', 'super.admin'])->prefix('admin')->group(function (): void {
+        Route::get('dashboard', AdminDashboardController::class);
+        Route::get('users', [AdminUserController::class, 'index']);
+        Route::get('users/{user}', [AdminUserController::class, 'show']);
+        Route::patch('users/{user}/status', [AdminUserController::class, 'status']);
+        Route::get('restaurants', [AdminRestaurantController::class, 'index']);
+        Route::get('restaurants/{restaurant}', [AdminRestaurantController::class, 'show']);
+        Route::patch('restaurants/{restaurant}/status', [AdminRestaurantController::class, 'status']);
+    });
+
+    Route::middleware(['auth:sanctum', 'account.active'])->prefix('restaurant')->group(function (): void {
         Route::get('/', [RestaurantController::class, 'show']);
         Route::post('/', [RestaurantController::class, 'store']);
         Route::put('/', [RestaurantController::class, 'update']);
@@ -38,7 +51,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('analytics', [AnalyticsController::class, 'dashboard']);
     });
 
-    Route::middleware('auth:sanctum')->prefix('categories')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'account.active'])->prefix('categories')->group(function (): void {
         Route::get('/', [CategoryController::class, 'index']);
         Route::post('/', [CategoryController::class, 'store']);
         Route::post('reorder', [CategoryController::class, 'reorder']);
@@ -47,7 +60,7 @@ Route::prefix('v1')->group(function (): void {
         Route::delete('{category}', [CategoryController::class, 'destroy']);
     });
 
-    Route::middleware('auth:sanctum')->prefix('menu-items')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'account.active'])->prefix('menu-items')->group(function (): void {
         Route::get('/', [MenuItemController::class, 'index']);
         Route::post('/', [MenuItemController::class, 'store']);
         Route::post('reorder', [MenuItemController::class, 'reorder']);
