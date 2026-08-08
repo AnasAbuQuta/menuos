@@ -22,6 +22,10 @@ class Restaurant extends Model
 
     use HasLocalizedContent;
 
+    protected $attributes = [
+        'platform_status' => 'active',
+    ];
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
